@@ -8,11 +8,10 @@ Gem::Specification.new do |s|
   s.authors     = "Philip Corliss"
   s.email       = 'pcorlis@50projects.com'
   s.homepage    = 'http://github.com/pcorliss/ruby_route_53'
-  s.summary     = "A gem summary"
-  s.description = "A gem description"
+  s.summary     = "Library for Amazon's Route 53 service"
+  s.description = "Provides CRUD and list operations for records and zones as part of Amazon's Route 53 service."
 
   s.required_rubygems_version = ">= 1.3.6"
-  s.rubyforge_project         = "route53"
 
   s.add_development_dependency "bundler", ">= 1.0.0"
   s.add_development_dependency "ruby-hmac"
