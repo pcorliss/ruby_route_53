@@ -27,7 +27,7 @@ module Route53
       uri = URI(url)
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = true
-      time = Time.now.utc.rfc2822
+      time = get_date
       hmac = HMAC::SHA256.new(@secret)
       hmac.update(time)
       signature = Base64.encode64(hmac.digest).chomp
@@ -65,6 +65,16 @@ module Route53
         return nil
       end
       return zones
+    end
+    
+    def get_date
+      #return Time.now.utc.rfc2822
+      uri = URI(@endpoint)
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = true
+      resp = nil
+      http.start { |http| resp = http.head('/date') }
+      return resp['Date']
     end
     
   end
