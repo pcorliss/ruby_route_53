@@ -48,7 +48,7 @@ class App
       opts.on('-v', '--version', "Print Version Information") { output_version ; exit 0 }
       opts.on('-h', '--help',"Show this message") { puts opts ; exit 0 }
       opts.on('-V', '--verbose',"Verbose Output") { @options.verbose = true }  
-      opts.on('-q', '--quiet',"Quiet Output") { @options.quiet = true }
+      #opts.on('-q', '--quiet',"Quiet Output") { @options.quiet = true }
       
       opts.on('-l', '--list [ZONE]', String, "Receive a list of all zones or specify a zone to view") { |zone| @options.zone = zone; @options.list = true }
       opts.on('-n', '--new [ZONE]', String, "Create a new Zone") { |zone| @options.zone = zone; @options.new_zone = true }
@@ -67,7 +67,7 @@ class App
       opts.on('-m', '--comment [COMMENT]', String, "Provide a comment for this operation") { |comment| @options.comment = comment }
       
       opts.on('--no-wait',"Do not wait for actions to finish syncing.") { @options.nowait = true }
-      opts.on('-s', '--setup',"Run the setup ptogram to create your configuration file.")
+      opts.on('-s', '--setup',"Run the setup ptogram to create your configuration file.") { @options.setup = true }
       opts.on('-f', '--file [CONFIGFILE]',String,"Specify a configuration file to use") { |file| @options.file = file }
       
       opts.on('--access [ACCESSKEY]',String,"Specify an access key on the command line.") { |access| @options.access = access }
@@ -83,6 +83,10 @@ class App
     def process_options
       @options.verbose = false if @options.quiet
       @options.file = (user_home+"/.route53") if @options.file.nil?
+      #setup file
+      if @options.setup
+        setup
+      end
       load_config
       @config['access_key'] = @options.access unless @options.access.nil?
       @config['secret_key'] = @options.secret unless @options.secret.nil?
@@ -102,18 +106,7 @@ class App
     
     # Setup the arguments
     def process_arguments
-      if @options.list
-        zones = conn.get_zones(@options.zone)
-        zones.each do |z|
-          puts z
-          if @options.zone
-            records = z.get_records(@options.type.nil? ? "ANY" : @options.type)
-            records.each do |r|
-              puts r
-            end
-          end
-        end
-      end
+
       
       if @options.new_zone
         new_zone = Route53::Zone.new(@options.zone,nil,conn)
@@ -212,6 +205,53 @@ class App
         end
       end
       
+      if @options.list || @options.zone.nil?
+        zones = conn.get_zones(@options.zone)
+        zones.each do |z|
+          puts z
+          if @options.zone
+            records = z.get_records(@options.type.nil? ? "ANY" : @options.type)
+            records.each do |r|
+              puts r
+            end
+          end
+        end
+      end
+    end
+    
+    def setup
+      puts "You've either elected to run the setup or a configuration file could not be found."
+      puts "Please answer the following prompts."
+      new_config = Hash.new
+      new_config['access_key'] = get_input(String,"Amazon Access Key",)
+      new_config['secret_key'] = get_input(String,"Amazon Secret Key")
+      new_config['api'] = get_input(String,"Amazon Route 53 API Version","2010-10-01")
+      new_config['endpoint'] = get_input(String,"Amazon Route 53 Endpoint","https://route53.amazonaws.com/")
+      if get_input(true.class,"Save the configuration file to \"~/.route53\"?","Y")
+        File.open(@options.file,'w') do |out|
+          YAML.dump(new_config,out)
+        end
+        load_config
+      else
+        puts "Not Saving File. Dumping Config instead."
+        puts YAML.dump(new_config)
+        exit 0
+      end
+      
+    end
+    
+    def get_input(type,description,default = nil)
+      print "#{description}: [#{default}] "
+      STDOUT.flush
+      selection = gets
+      selection.chomp!
+      if selection == ""
+        selection = default
+      end
+      if type == true.class
+        selection = (selection == 'Y')
+      end
+      return selection
     end
     
     def record_picker(records,allowall = true)
@@ -275,6 +315,9 @@ class App
     end
     
     def load_config
+      unless File.exists?(@options.file)
+        setup
+      end
       @config = YAML.load_file(@options.file)
       unless @config
         @config = Hash.new
