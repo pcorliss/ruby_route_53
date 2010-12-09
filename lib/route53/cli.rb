@@ -293,7 +293,9 @@ module Route53
       end
       
       def output_version
-        puts "#{File.basename(__FILE__)} version #{Route53::VERSION}"
+        puts "Ruby route53 interface version #{Route53::VERSION}"
+        puts "Written by Philip Corliss (pcorliss@50projects.com)"
+        puts "https://github.com/pcorliss/ruby_route_53"
       end
       
       def process_command
