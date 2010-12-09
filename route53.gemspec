@@ -11,9 +11,8 @@ Gem::Specification.new do |s|
   s.summary     = "Library for Amazon's Route 53 service"
   s.description = "Provides CRUD and list operations for records and zones as part of Amazon's Route 53 service."
 
-  s.required_rubygems_version = ">= 1.3.6"
+  s.required_rubygems_version = ">= 1.3.5"
 
-  s.add_dependency "bundler", ">= 1.0.0"
   s.add_dependency "ruby-hmac"
   s.add_dependency "hpricot"
   s.add_dependency "builder"
