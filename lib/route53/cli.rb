@@ -4,7 +4,6 @@ require 'optparse'
 require 'ostruct'
 require 'date'
 require 'yaml'
-require 'route53/version'
 
 module Route53
   class CLI

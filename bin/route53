@@ -5,6 +5,7 @@ $LOAD_PATH.unshift(lib) if File.directory?(lib) && !$LOAD_PATH.include?(lib)
 
 require 'route53'
 require 'route53/cli'
+require 'route53/version'
 
 app = Route53::CLI.new(ARGV, STDIN)
 app.run
