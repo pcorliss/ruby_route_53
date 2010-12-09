@@ -56,16 +56,17 @@ class App
       opts.on('-z', '--zone [ZONE]', String, "Specify a zone to perform an operation on") { |zone| @options.zone = zone }
       
       opts.on('-c', '--create', "Create a new record") { @options.create_record = true }
-      opts.on('-r', '--remove [RECORD]', String, "Remove a record") { |record| @options.remove_record = record }
-      opts.on('-g', '--change [RECORD]', String, "Change a record") { |record| @options.change_record = record }
+      opts.on('-r', '--remove', String, "Remove a record") { |record| @options.remove_record = true }
+      opts.on('-g', '--change', String, "Change a record") { |record| @options.change_record = true }
       
       opts.on('--name [NAME]', String, "Specify a name for a record") { |name| @options.name = name }
       opts.on('--type [TYPE]', String, "Specify a type for a record") { |type| @options.type = type }
       opts.on('--ttl [TTL]', String, "Specify a TTL for a record") { |ttl| @options.ttl = ttl }
-      opts.on('--value [VALUE]', String, "Specify a value for a record") { |value| @options.value = value }
+      opts.on('--values [VALUE1],[VALUE2],[VALUE3]', Array, "Specify one or multiple values for a record") { |value| @options.values = value }
       
       opts.on('-m', '--comment [COMMENT]', String, "Provide a comment for this operation") { |comment| @options.comment = comment }
-            
+      
+      opts.on('--no-wait',"Do not wait for actions to finish syncing.") { @options.nowait = true }
       opts.on('-s', '--setup',"Run the setup ptogram to create your configuration file.")
       opts.on('-f', '--file [CONFIGFILE]',String,"Specify a configuration file to use") { |file| @options.file = file }
       
@@ -102,13 +103,153 @@ class App
     # Setup the arguments
     def process_arguments
       if @options.list
-        records = conn.get_zones(@options.zone)
-        records.each do |r|
-          puts r
+        zones = conn.get_zones(@options.zone)
+        zones.each do |z|
+          puts z
+          if @options.zone
+            records = z.get_records(@options.type.nil? ? "ANY" : @options.type)
+            records.each do |r|
+              puts r
+            end
+          end
         end
       end
       
+      if @options.new_zone
+        new_zone = Route53::Zone.new(@options.zone,nil,conn)
+        puts "Creating New Zone #{@options.zone}"
+        resp = new_zone.create_zone(@options.comment)
+        if resp.error?
+          $stderr.puts "ERROR: Failed to create new zone."
+        else
+          pending_wait(resp)
+          puts "Zone Created."
+        end
+      end
       
+      if @options.delete_zone
+        records = conn.get_zones(@options.zone)
+        if records.size > 0
+          if records.size > 1
+            records = record_picker(records)
+          end
+          records.each do |r| 
+            puts "Deleting Zone #{r.name}"
+            resp = r.delete_zone
+            pending_wait(resp)
+            puts "Zone Deleted." unless resp.error?
+          end
+        else
+          $stderr.puts "ERROR: Couldn't Find Record for @options.zone."
+        end
+      end
+      
+      if @options.create_record
+        zones = conn.get_zones(@options.zone)
+        if zones.size > 0
+          resps = []
+          zones.each do |z|
+            puts "Creating Record"
+            record = Route53::DNSRecord.new(@options.name,@options.type,@options.ttl,@options.values,z)
+            puts "Creating Record #{record}"
+            resps.push(record.create)
+          end
+          resps.each do |resp|
+            pending_wait(resp)
+            puts "Record Created." unless resp.error?
+          end
+        else
+          $stderr.puts "ERROR: Couldn't Find Record for @options.zone."
+        end
+
+      end
+      
+      if @options.remove_record
+        zones = conn.get_zones(@options.zone)
+        if zones.size > 0
+          zones.each do |z|
+            records = z.get_records(@options.type.nil? ? "ANY" : @options.type)
+            if records.size > 0
+              if records.size > 1
+                records = record_picker(records)
+              end
+              records.each do |r| 
+                puts "Deleting Record #{r.name}"
+                resp = r.delete
+                pending_wait(resp)
+                puts "Record Deleted." unless resp.error?
+              end
+            else
+              $stderr.puts "ERROR: Couldn't Find Record for @options.zone of type "+(@options.type.nil? ? "ANY" : @options.type)+"."
+            end
+          end
+        else
+          $stderr.puts "ERROR: Couldn't Find Record for @options.zone."
+        end
+      end
+      
+      if @options.change_record
+        zones = conn.get_zones(@options.zone)
+        if zones.size > 0
+          zones.each do |z|
+            records = z.get_records(@options.type.nil? ? "ANY" : @options.type)
+            if records.size > 0
+              if records.size > 1
+                records = record_picker(records,false)
+              end
+              records.each do |r| 
+                puts "Modifying Record #{r.name}"
+                resp = r.update(@options.name,@options.type,@options.ttl,@options.values,comment=nil)
+                pending_wait(resp)
+                puts "Record Modified." unless resp.error?
+              end
+            else
+              $stderr.puts "ERROR: Couldn't Find Record for @options.zone of type "+(@options.type.nil? ? "ANY" : @options.type)+"."
+            end
+          end
+        else
+          $stderr.puts "ERROR: Couldn't Find Record for @options.zone."
+        end
+      end
+      
+    end
+    
+    def record_picker(records,allowall = true)
+      puts "Please select the record to perform the action on."
+      records.each_with_index do |r,i|
+        puts "[#{i}] #{r}"
+      end
+      puts "[#{records.size}] All" if allowall
+      puts "[#{records.size+1}] None"
+      print "Make a selection: [#{records.size+1}] "
+      STDOUT.flush
+      selection = gets
+      selection.chomp!
+      if selection == ""
+        selection = records.size+1
+      elsif selection != "0" && selection.to_i == 0
+        $stderr.puts "a Invalid selection: #{selection}"
+        exit 1
+      end
+      selection = selection.to_i
+      puts "Received #{selection}"
+      if selection == records.size && allowall
+        return records
+      elsif selection == records.size + 1
+        return []
+      elsif records[selection]
+        return [records[selection]]
+      else
+        $stderr.puts "Invalid selection: #{selection}"
+        exit 1
+      end
+    end
+    
+    def pending_wait(resp)
+      while !@options.nowait && resp.pending?
+        print '.'
+        sleep 1
+      end
     end
     
     def output_version

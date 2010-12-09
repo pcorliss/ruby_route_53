@@ -26,7 +26,9 @@ module Route53
     end
     
     def request(url,type = "GET",data = nil)
-      #puts "URL: #{url}"
+      puts "URL: #{url}"
+      puts "Type: #{type}"
+      puts "Req: #{data}" if type != "GET"
       uri = URI(url)
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = true
@@ -39,10 +41,10 @@ module Route53
         'X-Amzn-Authorization' => "AWS3-HTTPS AWSAccessKeyId=#{@accesskey},Algorithm=HmacSHA256,Signature=#{signature}",
         'Content-Type' => 'text/xml; charset=UTF-8'
       }
-      resp, data = http.send_request(type,uri.path,data,headers)
+      resp, raw_resp = http.send_request(type,uri.path,data,headers)
       #puts "Resp:"+resp.to_s
-      #puts "Data:"+data
-      return AWSResponse.new(data,self)
+      #puts "XML_RESP:"+raw_resp
+      return AWSResponse.new(raw_resp,self)
     end
     
     def get_zones(name = nil)
@@ -72,12 +74,19 @@ module Route53
     
     def get_date
       #return Time.now.utc.rfc2822
-      uri = URI(@endpoint)
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl = true
-      resp = nil
-      http.start { |http| resp = http.head('/date') }
-      return resp['Date']
+      #Cache date for 30 seconds to reduce extra calls
+      if @date_stale.nil? || @date_stale < Time.now - 30
+        uri = URI(@endpoint)
+        http = Net::HTTP.new(uri.host, uri.port)
+        http.use_ssl = true
+        resp = nil
+        puts "Making Date Request"
+        http.start { |http| resp = http.head('/date') }
+        @date = resp['Date']
+        @date_stale = Time.now
+        puts "Received Date."
+      end
+      return @date
     end
     
   end
@@ -110,7 +119,7 @@ module Route53
       xml_str = ""
       xml = Builder::XmlMarkup.new(:target=>xml_str, :indent=>2)
       xml.instruct!
-      xml.CreateHostedZoneRequest(:xmlns => @endpoint+'doc/'+@api+'/') { |create|
+      xml.CreateHostedZoneRequest(:xmlns => @conn.endpoint+'doc/'+@conn.api+'/') { |create|
         create.Name(@name)
         # AWS lists this as required
         # "unique string that identifies the request and that 
@@ -198,6 +207,7 @@ module Route53
         $stderr.puts @raw_data
       end
       @conn = conn
+      puts "Raw: #{@raw_data}"
     end
     
     def error?
@@ -205,6 +215,7 @@ module Route53
     end
 
     def complete?
+      return true if error?
       if @change_url.nil?
         change = Hpricot::XML(@raw_data).search("ChangeInfo")
         if change.size > 0
@@ -277,10 +288,10 @@ module Route53
       @type = type unless type.nil?
       @ttl = ttl unless ttl.nil?
       @values = values unless values.nil?
-      @zone.perform_actions(self.name,[
-      {:action => "DELETE", :record => prev},
-      {:action => "CREATE", :record => self},
-      ],comment)
+      @zone.perform_actions([
+          {:action => "DELETE", :record => prev},
+          {:action => "CREATE", :record => self},
+          ],comment)
     end
     
     #Returns the raw array so the developer can update large batches manually
