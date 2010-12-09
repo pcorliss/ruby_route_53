@@ -1,4 +1,3 @@
-module Route53
   require 'hmac'
   require 'hmac-sha2'
   require 'base64'
@@ -8,6 +7,10 @@ module Route53
   require 'hpricot'
   require 'builder'
   require 'digest/md5'
+  
+  require 'route53/version'
+
+module Route53
   
   class Connection
     attr_reader :base_url
@@ -23,7 +26,7 @@ module Route53
     end
     
     def request(url,type = "GET",data = nil)
-      puts "URL: #{url}"
+      #puts "URL: #{url}"
       uri = URI(url)
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = true
@@ -37,7 +40,7 @@ module Route53
         'Content-Type' => 'text/xml; charset=UTF-8'
       }
       resp, data = http.send_request(type,uri.path,data,headers)
-      puts "Resp:"+resp.to_s
+      #puts "Resp:"+resp.to_s
       #puts "Data:"+data
       return AWSResponse.new(data,self)
     end
@@ -118,7 +121,7 @@ module Route53
           conf.Comment(comment)
         }
       }
-      puts "XML:\n#{xml_str}"
+      #puts "XML:\n#{xml_str}"
       @conn.request(@conn.base_url + "/hostedzone","POST",xml_str)
     end
     
@@ -133,11 +136,11 @@ module Route53
       
       dom_records = []
       records.each do |record|
-        puts "Name:"+record.search("Name").first.innerText
-        puts "Type:"+record.search("Type").first.innerText
-        puts "TTL:"+record.search("TTL").first.innerText
+        #puts "Name:"+record.search("Name").first.innerText
+        #puts "Type:"+record.search("Type").first.innerText
+        #puts "TTL:"+record.search("TTL").first.innerText
         record.search("Value").each do |val|
-          puts "Val:"+val.innerText
+          #puts "Val:"+val.innerText
         end
         dom_records.push(DNSRecord.new(record.search("Name").first.innerText,
                       record.search("Type").first.innerText,
@@ -170,7 +173,7 @@ module Route53
           }
         }
       }
-      puts "XML:\n#{xml_str}"
+      #puts "XML:\n#{xml_str}"
       return xml_str
     end
     
