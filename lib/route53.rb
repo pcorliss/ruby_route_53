@@ -16,19 +16,21 @@ module Route53
     attr_reader :base_url
     attr_reader :api
     attr_reader :endpoint
+    attr_reader :verbose
     
-    def initialize(accesskey,secret,api='2010-10-01',endpoint='https://route53.amazonaws.com/')
+    def initialize(accesskey,secret,api='2010-10-01',endpoint='https://route53.amazonaws.com/',verbose=false)
       @accesskey = accesskey
       @secret = secret
       @api = api
       @endpoint = endpoint
       @base_url = endpoint+@api
+      @verbose = verbose
     end
     
     def request(url,type = "GET",data = nil)
-      puts "URL: #{url}"
-      puts "Type: #{type}"
-      puts "Req: #{data}" if type != "GET"
+      puts "URL: #{url}" if @verbose
+      puts "Type: #{type}" if @verbose
+      puts "Req: #{data}" if type != "GET" && @verbose
       uri = URI(url)
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = true
@@ -42,8 +44,8 @@ module Route53
         'Content-Type' => 'text/xml; charset=UTF-8'
       }
       resp, raw_resp = http.send_request(type,uri.path,data,headers)
-      #puts "Resp:"+resp.to_s
-      #puts "XML_RESP:"+raw_resp
+      #puts "Resp:"+resp.to_s if @verbose
+      #puts "XML_RESP:"+raw_resp if @verbose
       return AWSResponse.new(raw_resp,self)
     end
     
@@ -80,11 +82,11 @@ module Route53
         http = Net::HTTP.new(uri.host, uri.port)
         http.use_ssl = true
         resp = nil
-        puts "Making Date Request"
+        puts "Making Date Request" if @verbose
         http.start { |http| resp = http.head('/date') }
         @date = resp['Date']
         @date_stale = Time.now
-        puts "Received Date."
+        puts "Received Date." if @verbose
       end
       return @date
     end
@@ -130,7 +132,7 @@ module Route53
           conf.Comment(comment)
         }
       }
-      #puts "XML:\n#{xml_str}"
+      #puts "XML:\n#{xml_str}" if @conn.verbose
       @conn.request(@conn.base_url + "/hostedzone","POST",xml_str)
     end
     
@@ -145,11 +147,11 @@ module Route53
       
       dom_records = []
       records.each do |record|
-        #puts "Name:"+record.search("Name").first.innerText
-        #puts "Type:"+record.search("Type").first.innerText
-        #puts "TTL:"+record.search("TTL").first.innerText
+        #puts "Name:"+record.search("Name").first.innerText if @conn.verbose
+        #puts "Type:"+record.search("Type").first.innerText if @conn.verbose
+        #puts "TTL:"+record.search("TTL").first.innerText if @conn.verbose
         record.search("Value").each do |val|
-          #puts "Val:"+val.innerText
+          #puts "Val:"+val.innerText if @conn.verbose
         end
         dom_records.push(DNSRecord.new(record.search("Name").first.innerText,
                       record.search("Type").first.innerText,
@@ -182,7 +184,7 @@ module Route53
           }
         }
       }
-      #puts "XML:\n#{xml_str}"
+      #puts "XML:\n#{xml_str}" if @conn.verbose
       return xml_str
     end
     
@@ -207,7 +209,7 @@ module Route53
         $stderr.puts @raw_data
       end
       @conn = conn
-      puts "Raw: #{@raw_data}"
+      puts "Raw: #{@raw_data}" if @conn.verbose
     end
     
     def error?

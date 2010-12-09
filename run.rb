@@ -309,7 +309,7 @@ class App
     
     def conn
       if @conn.nil?
-        @conn = Route53::Connection.new(@config['access_key'],@config['secret_key'],@config['api'],@config['endpoint'])
+        @conn = Route53::Connection.new(@config['access_key'],@config['secret_key'],@config['api'],@config['endpoint'],@options.verbose)
       end
       return @conn
     end
