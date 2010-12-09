@@ -13,10 +13,10 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = ">= 1.3.6"
 
-  s.add_development_dependency "bundler", ">= 1.0.0"
-  s.add_development_dependency "ruby-hmac"
-  s.add_development_dependency "hpricot"
-  s.add_development_dependency "builder"
+  s.add_dependency "bundler", ">= 1.0.0"
+  s.add_dependency "ruby-hmac"
+  s.add_dependency "hpricot"
+  s.add_dependency "builder"
   
   s.files        = `git ls-files`.split("\n")
   s.executables  = `git ls-files`.split("\n").map{|f| f =~ /^bin\/(.*)/ ? $1 : nil}.compact

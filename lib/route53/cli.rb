@@ -223,7 +223,7 @@ module Route53
         puts "You've either elected to run the setup or a configuration file could not be found."
         puts "Please answer the following prompts."
         new_config = Hash.new
-        new_config['access_key'] = get_input(String,"Amazon Access Key",)
+        new_config['access_key'] = get_input(String,"Amazon Access Key")
         new_config['secret_key'] = get_input(String,"Amazon Secret Key")
         new_config['api'] = get_input(String,"Amazon Route 53 API Version","2010-10-01")
         new_config['endpoint'] = get_input(String,"Amazon Route 53 Endpoint","https://route53.amazonaws.com/")
