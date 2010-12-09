@@ -1,14 +1,12 @@
-  require 'hmac'
-  require 'hmac-sha2'
-  require 'base64'
-  require 'time'
-  require 'net/http'
-  require 'uri'
-  require 'hpricot'
-  require 'builder'
-  require 'digest/md5'
-  
-  require 'route53/version'
+require 'hmac'
+require 'hmac-sha2'
+require 'base64'
+require 'time'
+require 'net/http'
+require 'uri'
+require 'hpricot'
+require 'builder'
+require 'digest/md5'
 
 module Route53
   

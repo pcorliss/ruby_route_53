@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+
+lib = File.expand_path(File.dirname(__FILE__) + '/../lib')
+$LOAD_PATH.unshift(lib) if File.directory?(lib) && !$LOAD_PATH.include?(lib)
+
+require 'route53'
+require 'route53/cli'
+
+app = Route53::CLI.new(ARGV, STDIN)
+app.run
