@@ -59,7 +59,7 @@ module Route53
         opts.on('-g', '--change', String, "Change a record") { |record| @options.change_record = true }
         
         opts.on('--name [NAME]', String, "Specify a name for a record") { |name| @options.name = name }
-        opts.on('--type [TYPE]', String, "Specify a type for a record") { |type| @options.type = type }
+        opts.on('--type [TYPE]', String, "Specify a type for a record") { |dnstype| @options.dnstype = dnstype }
         opts.on('--ttl [TTL]', String, "Specify a TTL for a record") { |ttl| @options.ttl = ttl }
         opts.on('--values [VALUE1],[VALUE2],[VALUE3]', Array, "Specify one or multiple values for a record") { |value| @options.values = value }
         
@@ -142,7 +142,7 @@ module Route53
             resps = []
             zones.each do |z|
               puts "Creating Record"
-              record = Route53::DNSRecord.new(@options.name,@options.type,@options.ttl,@options.values,z)
+              record = Route53::DNSRecord.new(@options.name,@options.dnstype,@options.ttl,@options.values,z)
               puts "Creating Record #{record}"
               resps.push(record.create)
             end
@@ -160,7 +160,7 @@ module Route53
           zones = conn.get_zones(@options.zone)
           if zones.size > 0
             zones.each do |z|
-              records = z.get_records(@options.type.nil? ? "ANY" : @options.type)
+              records = z.get_records(@options.dnstype.nil? ? "ANY" : @options.dnstype)
               if records.size > 0
                 if records.size > 1
                   records = record_picker(records)
@@ -172,7 +172,7 @@ module Route53
                   puts "Record Deleted." unless resp.error?
                 end
               else
-                $stderr.puts "ERROR: Couldn't Find Record for @options.zone of type "+(@options.type.nil? ? "ANY" : @options.type)+"."
+                $stderr.puts "ERROR: Couldn't Find Record for @options.zone of type "+(@options.dnstype.nil? ? "ANY" : @options.dnstype)+"."
               end
             end
           else
@@ -184,19 +184,19 @@ module Route53
           zones = conn.get_zones(@options.zone)
           if zones.size > 0
             zones.each do |z|
-              records = z.get_records(@options.type.nil? ? "ANY" : @options.type)
+              records = z.get_records(@options.dnstype.nil? ? "ANY" : @options.dnstype)
               if records.size > 0
                 if records.size > 1
                   records = record_picker(records,false)
                 end
                 records.each do |r| 
                   puts "Modifying Record #{r.name}"
-                  resp = r.update(@options.name,@options.type,@options.ttl,@options.values,comment=nil)
+                  resp = r.update(@options.name,@options.dnstype,@options.ttl,@options.values,comment=nil)
                   pending_wait(resp)
                   puts "Record Modified." unless resp.error?
                 end
               else
-                $stderr.puts "ERROR: Couldn't Find Record for @options.zone of type "+(@options.type.nil? ? "ANY" : @options.type)+"."
+                $stderr.puts "ERROR: Couldn't Find Record for @options.zone of type "+(@options.dnstype.nil? ? "ANY" : @options.dnstype)+"."
               end
             end
           else
@@ -209,7 +209,7 @@ module Route53
           zones.each do |z|
             puts z
             if @options.zone
-              records = z.get_records(@options.type.nil? ? "ANY" : @options.type)
+              records = z.get_records(@options.dnstype.nil? ? "ANY" : @options.dnstype)
               records.each do |r|
                 puts r
               end
@@ -239,7 +239,7 @@ module Route53
         
       end
       
-      def get_input(type,description,default = nil)
+      def get_input(inputtype,description,default = nil)
         print "#{description}: [#{default}] "
         STDOUT.flush
         selection = gets
@@ -247,7 +247,7 @@ module Route53
         if selection == ""
           selection = default
         end
-        if type == true.class
+        if inputtype == true.class
           selection = (selection == 'Y')
         end
         return selection
