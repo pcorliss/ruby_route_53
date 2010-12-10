@@ -294,6 +294,7 @@ module Route53
           File.open(@options.file,'w') do |out|
             YAML.dump(new_config,out)
           end
+          File.chmod(0600,@options.file)
           load_config
         else
           puts "Not Saving File. Dumping Config instead."
