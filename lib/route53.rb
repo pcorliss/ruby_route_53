@@ -136,7 +136,7 @@ module Route53
         # "unique string that identifies the request and that 
         # allows failed CreateHostedZone requests to be retried without the risk of executing the operation twice."
         # Just going to pass a random string instead.
-        create.CallerReference(rand().to_s)
+        create.CallerReference(rand(2**32).to_s(16))
         create.HostedZoneConfig { |conf|
           conf.Comment(comment)
         }
