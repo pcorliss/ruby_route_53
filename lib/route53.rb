@@ -305,7 +305,7 @@ module Route53
         @name += "."
       end
       @type = type
-      @ttl = ttl
+      @ttl = ttl.upcase
       @values = values
       @zone = zone
     end
