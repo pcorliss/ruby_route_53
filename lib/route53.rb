@@ -45,7 +45,7 @@ module Route53
         'X-Amzn-Authorization' => "AWS3-HTTPS AWSAccessKeyId=#{@accesskey},Algorithm=HmacSHA256,Signature=#{signature}",
         'Content-Type' => 'text/xml; charset=UTF-8'
       }
-      resp, raw_resp = http.send_request(type,uri.path+"?"+uri.query,data,headers)
+      resp, raw_resp = http.send_request(type,uri.path+"?"+(uri.query.nil? ? "" : uri.query),data,headers)
       #puts "Resp:"+resp.to_s if @verbose
       #puts "XML_RESP:"+raw_resp if @verbose
       return AWSResponse.new(raw_resp,self)
@@ -56,10 +56,13 @@ module Route53
       query = []
       zones = []
       while truncated
-        resp = request("#{@base_url}/hostedzone?"+query.join("&"))
-        if resp.error?
-          return nil
+        if !name.nil? && name.start_with?("/hostedzone/")
+          resp = request("#{@base_url}#{name}")
+          truncated = false
+        else
+          resp = request("#{@base_url}/hostedzone?"+query.join("&"))
         end
+        return nil if resp.error?
         zone_list = Hpricot::XML(resp.raw_data)
         elements = zone_list.search("HostedZone")
         elements.each do |e|
@@ -67,15 +70,15 @@ module Route53
                               e.search("Id").first.innerText,
                               self))
         end
-        truncated = (zone_list.search("IsTruncated").first.innerText == "true")
+        truncated = (zone_list.search("IsTruncated").first.innerText == "true") if truncated
         query = ["marker="+zone_list.search("NextMarker").first.innerText] if truncated
       end
-      unless name.nil?
+      unless name.nil? || name.start_with?("/hostedzone/")
         name_arr = name.split('.')
         (0 ... name_arr.size).each do |i| 
           search_domain = name_arr.last(name_arr.size-i).join('.')+"."
           zone_select = zones.select { |z| z.name == search_domain }
-          return zone_select if zone_select.size == 1
+          return zone_select
         end
         return nil
       end
@@ -118,10 +121,6 @@ module Route53
       @conn = conn
     end
     
-    def exists?
-    
-    end
-    
     def delete_zone
       @conn.request(@conn.base_url + @host_url,"DELETE")
     end
@@ -142,7 +141,10 @@ module Route53
         }
       }
       #puts "XML:\n#{xml_str}" if @conn.verbose
-      @conn.request(@conn.base_url + "/hostedzone","POST",xml_str)
+      resp = @conn.request(@conn.base_url + "/hostedzone","POST",xml_str)
+      resp_xml = Hpricot::XML(resp.raw_data)
+      @host_url = resp_xml.search("HostedZone").first.search("Id").first.innerText
+      return resp
     end
     
     def get_records(type="ANY")
@@ -235,9 +237,10 @@ module Route53
         $stderr.puts "ERROR: "+error_message
         $stderr.puts ""
         $stderr.puts "What now? "+helpful_message
-        exit 1
+        #exit 1
       end
       @conn = conn
+      @created = Time.now
       puts "Raw: #{@raw_data}" if @conn.verbose
     end
     
@@ -272,6 +275,10 @@ module Route53
       if @complete.nil? || @complete == false
         status = Hpricot::XML(@conn.request(@conn.base_url+@change_url).raw_data).search("Status")
         @complete = status.size > 0 && status.first.innerText == "INSYNC" ? true : false
+        if !@complete && @created - Time.now > 60
+          $stderr.puts "WARNING: Amazon Route53 Change timed out on Sync. This may not be an issue as it may just be Amazon being assy. Then again your request may not have completed.'"
+          @complete = true
+        end
       end
       return @complete
     end
@@ -355,7 +362,7 @@ module Route53
     end
     
     def to_s
-      return "#{@name} #{@type} #{@ttl} #{@values}"
+      return "#{@name} #{@type} #{@ttl} #{@values.join(",")}"
     end
   end
 end
@@ -364,6 +371,8 @@ end
                   "MissingAuthenticationToken" => "You may have a missing or incorrect secret or access key. Please double check your configuration files and amazon account",
                   "OptInRequired" => "In order to use Amazon's Route 53 service you first need to signup for it. Please see http://aws.amazon.com/route53/ for your account information and use the associated access key and secret.",
                   "Other" => "It looks like you've run into an unhandled error. Please send a detailed bug report with the entire input and output from the program to support@50projects.com or to https://github.com/pcorliss/ruby_route_53/issues and we'll do out best to help you.",
-                  "SignatureDoesNotMatch" => "It looks like your secret key is incorrect or no longer valid. Please check your amazon account information for the proper key."}
+                  "SignatureDoesNotMatch" => "It looks like your secret key is incorrect or no longer valid. Please check your amazon account information for the proper key.",
+                  "HostedZoneNotEmpty" => "You'll need to first delete the contents of this zone. You can do so using the '--remove' option as part of the command line interface.",
+                  "InvalidChangeBatch" => "You may have tried to delete a NS or SOA record. This error is safe to ignore if you're just trying to delete all records as part of a zone prior to deleting the zone. Otherwise please file a bug by sending a detailed bug report with the entire input and output from the program to support@50projects.com or to https://github.com/pcorliss/ruby_route_53/issues and we'll do out best to help you."}
                   
 

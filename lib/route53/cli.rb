@@ -49,10 +49,10 @@ module Route53
         opts.on('-V', '--verbose',"Verbose Output") { @options.verbose = true }  
         #opts.on('-q', '--quiet',"Quiet Output") { @options.quiet = true }
         
-        opts.on('-l', '--list [ZONE]', String, "Receive a list of all zones or specify a zone to view") { |zone| @options.zone = zone; @options.list = true }
-        opts.on('-n', '--new [ZONE]', String, "Create a new Zone") { |zone| @options.zone = zone; @options.new_zone = true }
-        opts.on('-d', '--delete [ZONE]', String, "Delete a Zone") { |zone| @options.zone = zone; @options.delete_zone = true }
-        opts.on('-z', '--zone [ZONE]', String, "Specify a zone to perform an operation on") { |zone| @options.zone = zone }
+        opts.on('-l', '--list [ZONE]', String, "Receive a list of all zones or specify a zone to view") { |zone| @options.zone = zone unless zone.nil?; @options.list = true }
+        opts.on('-n', '--new [ZONE]', String, "Create a new Zone") { |zone| @options.zone = zone unless zone.nil?; @options.new_zone = true }
+        opts.on('-d', '--delete [ZONE]', String, "Delete a Zone") { |zone| @options.zone = zone unless zone.nil?; @options.delete_zone = true }
+        opts.on('-z', '--zone [ZONE]', String, "Specify a zone to perform an operation on. Either in 'example.com.' or '/hostedzone/XXX' format") { |zone| @options.zone = zone }
         
         opts.on('-c', '--create', "Create a new record") { @options.create_record = true }
         opts.on('-r', '--remove', String, "Remove a record") { |record| @options.remove_record = true }
@@ -336,7 +336,6 @@ module Route53
           exit 1
         end
         selection = selection.to_i
-        puts "Received #{selection}"
         if selection == records.size && allowall
           return records
         elsif selection == records.size + 1
@@ -352,6 +351,8 @@ module Route53
       def pending_wait(resp)
         while !@options.nowait && resp.pending?
           print '.'
+          
+          STDOUT.flush
           sleep 1
         end
       end
