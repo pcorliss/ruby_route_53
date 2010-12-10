@@ -178,4 +178,4 @@ This ruby interface for Amazon's Route 53 service was created by Philip Corliss 
 License
 -------
 
-LazyRaid is licensed under the GPL. See the LICENSE file for details.
+Ruby Route 53 is licensed under the GPL. See the LICENSE file for details.
