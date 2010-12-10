@@ -223,11 +223,19 @@ module Route53
   
   class AWSResponse
     attr_reader :raw_data
+    
+    #I wanted to put this in a seprate file but ruby's method of determinign the root of the gem is a pain in the butt and I was in a hurry. Sorry. -PC
+
+      
     def initialize(resp,conn)
       @raw_data = resp
       if error?
-        $stderr.puts "An Error has occured"
-        $stderr.puts @raw_data
+        $stderr.puts "ERROR: Amazon returned an error for the request."
+        $stderr.puts "ERROR: RAW_XML: "+@raw_data
+        $stderr.puts "ERROR: "+error_message
+        $stderr.puts ""
+        $stderr.puts "What now? "+helpful_message
+        exit 1
       end
       @conn = conn
       puts "Raw: #{@raw_data}" if @conn.verbose
@@ -235,6 +243,20 @@ module Route53
     
     def error?
       return Hpricot::XML(@raw_data).search("ErrorResponse").size > 0
+    end
+    
+    def error_message
+      xml = Hpricot::XML(@raw_data)
+      msg_code = xml.search("Code")
+      msg_text = xml.search("Message")
+      return (msg_code.size > 0 ? msg_code.first.inner_text : "") + (msg_text.size > 0 ? ': ' + msg_text.first.innerText : "")
+    end
+    
+    def helpful_message
+      xml = Hpricot::XML(@raw_data)
+      msg_code = xml.search("Code").first.innerText
+      return $messages[msg_code] if $messages[msg_code]
+      return $messages["Other"]
     end
 
     def complete?
@@ -338,4 +360,10 @@ module Route53
   end
 end
 
+    $messages = { "InvalidClientTokenId" => "You may have a missing or incorrect secret or access key. Please double check your configuration files and amazon account",
+                  "MissingAuthenticationToken" => "You may have a missing or incorrect secret or access key. Please double check your configuration files and amazon account",
+                  "OptInRequired" => "In order to use Amazon's Route 53 service you first need to signup for it. Please see http://aws.amazon.com/route53/ for your account information and use the associated access key and secret.",
+                  "Other" => "It looks like you've run into an unhandled error. Please send a detailed bug report with the entire input and output from the program to support@50projects.com or to https://github.com/pcorliss/ruby_route_53/issues and we'll do out best to help you.",
+                  "SignatureDoesNotMatch" => "It looks like your secret key is incorrect or no longer valid. Please check your amazon account information for the proper key."}
+                  
 

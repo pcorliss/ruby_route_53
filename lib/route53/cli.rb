@@ -89,6 +89,11 @@ module Route53
         load_config
         @config['access_key'] = @options.access unless @options.access.nil?
         @config['secret_key'] = @options.secret unless @options.secret.nil?
+        
+        
+        required_options("",["--access-key"]) if @config['access_key'].nil? || @config['access_key'] == ""
+        required_options("",["--secret_key"]) if @config['secret_key'].nil? || @config['secret_key'] == ""
+        
       end
       
       def output_options
@@ -268,8 +273,9 @@ module Route53
       end
       
       def required_options(operation,required = [],at_least_one = [],optional = [])
-        $stderr.puts "ERROR: The following arguments are required for a #{operation} operation."
-        $stderr.puts "ERROR: #{required.join(", ")} are required." if required.size > 0
+        operation == "" ? operation += " " : operation = " "+operation+" "
+        $stderr.puts "ERROR: The following arguments are required for a#{operation}operation."
+        $stderr.puts "ERROR: #{required.join(", ")} #{ (required.size > 1 ? "are" : "is") } required." if required.size > 0
         $stderr.puts "ERROR: At least one of #{at_least_one.join(", ")} are required." if at_least_one.size > 0
         $stderr.puts "ERROR: #{optional.join(", ")}are optional." if optional.size > 0
         exit 1
