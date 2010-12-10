@@ -45,24 +45,30 @@ module Route53
         'X-Amzn-Authorization' => "AWS3-HTTPS AWSAccessKeyId=#{@accesskey},Algorithm=HmacSHA256,Signature=#{signature}",
         'Content-Type' => 'text/xml; charset=UTF-8'
       }
-      resp, raw_resp = http.send_request(type,uri.path,data,headers)
+      resp, raw_resp = http.send_request(type,uri.path+"?"+uri.query,data,headers)
       #puts "Resp:"+resp.to_s if @verbose
       #puts "XML_RESP:"+raw_resp if @verbose
       return AWSResponse.new(raw_resp,self)
     end
     
     def get_zones(name = nil)
-      resp = request("#{@base_url}/hostedzone")
-      if resp.error?
-        return nil
-      end
-      zone_list = Hpricot::XML(resp.raw_data)
+      truncated = true
+      query = []
       zones = []
-      elements = zone_list.search("HostedZone")
-      elements.each do |e|
-        zones.push(Zone.new(e.search("Name").first.innerText,
-                            e.search("Id").first.innerText,
-                            self))
+      while truncated
+        resp = request("#{@base_url}/hostedzone?"+query.join("&"))
+        if resp.error?
+          return nil
+        end
+        zone_list = Hpricot::XML(resp.raw_data)
+        elements = zone_list.search("HostedZone")
+        elements.each do |e|
+          zones.push(Zone.new(e.search("Name").first.innerText,
+                              e.search("Id").first.innerText,
+                              self))
+        end
+        truncated = (zone_list.search("IsTruncated").first.innerText == "true")
+        query = ["marker="+zone_list.search("NextMarker").first.innerText] if truncated
       end
       unless name.nil?
         name_arr = name.split('.')
@@ -141,26 +147,38 @@ module Route53
     
     def get_records(type="ANY")
       return nil if host_url.nil?
-      resp = @conn.request(@conn.base_url+@host_url+"/rrset")
-      if resp.error?
-        return nil
-      end
-      zone_file = Hpricot::XML(resp.raw_data)
-      records = zone_file.search("ResourceRecordSet")
       
+      truncated = true
+      query = []
       dom_records = []
-      records.each do |record|
-        #puts "Name:"+record.search("Name").first.innerText if @conn.verbose
-        #puts "Type:"+record.search("Type").first.innerText if @conn.verbose
-        #puts "TTL:"+record.search("TTL").first.innerText if @conn.verbose
-        record.search("Value").each do |val|
-          #puts "Val:"+val.innerText if @conn.verbose
+      while truncated
+        resp = @conn.request(@conn.base_url+@host_url+"/rrset?"+query.join("&"))
+        if resp.error?
+          return nil
         end
-        dom_records.push(DNSRecord.new(record.search("Name").first.innerText,
-                      record.search("Type").first.innerText,
-                      record.search("TTL").first.innerText,
-                      record.search("Value").map { |val| val.innerText },
-                      self))
+        zone_file = Hpricot::XML(resp.raw_data)
+        records = zone_file.search("ResourceRecordSet")
+
+        records.each do |record|
+          #puts "Name:"+record.search("Name").first.innerText if @conn.verbose
+          #puts "Type:"+record.search("Type").first.innerText if @conn.verbose
+          #puts "TTL:"+record.search("TTL").first.innerText if @conn.verbose
+          record.search("Value").each do |val|
+            #puts "Val:"+val.innerText if @conn.verbose
+          end
+          dom_records.push(DNSRecord.new(record.search("Name").first.innerText,
+                        record.search("Type").first.innerText,
+                        record.search("TTL").first.innerText,
+                        record.search("Value").map { |val| val.innerText },
+                        self))
+        end
+        
+        truncated = (zone_file.search("IsTruncated").first.innerText == "true")
+        if truncated
+          next_name = zone_file.search("NextRecordName").first.innerText
+          next_type = zone_file.search("NextRecordType").first.innerText
+          query = ["name="+next_name,"type="+next_type]
+        end
       end
       @records = dom_records
       if type != 'ANY'
@@ -254,6 +272,9 @@ module Route53
     
     def initialize(name,type,ttl,values,zone)
       @name = name
+      unless @name.end_with?(".")
+        @name += "."
+      end
       @type = type
       @ttl = ttl
       @values = values

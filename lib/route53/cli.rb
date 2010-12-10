@@ -100,14 +100,47 @@ module Route53
       end
 
       def arguments_valid?
-        true #if @arguments.length == 1 
+        return true if @arguments.length == 0
+        $stderr.puts "Received extra arguments. that couldn't be handled:#{@arguments}"
+        return false
       end
       
       # Setup the arguments
       def process_arguments
-
-        
         if @options.new_zone
+          new_zone
+        elsif @options.delete_zone
+          delete_zone
+        elsif @options.create_record
+          create_record
+        elsif @options.remove_record 
+          remove_record
+        elsif @options.change_record
+          change_record
+        elsif @options.list || @options.zone.nil?
+          list
+        end
+      end
+      
+      def list
+        zones = conn.get_zones(@options.zone)
+        unless zones.nil?
+          zones.each do |z|
+            puts z
+            if @options.zone
+              records = z.get_records(@options.dnstype.nil? ? "ANY" : @options.dnstype)
+              records.each do |r|
+                puts r
+              end
+            end
+          end
+        else
+          $stderr.puts "ERROR: No Records found for #{@options.zone}"
+        end
+      end
+    
+      def new_zone
+        if @options.zone
           new_zone = Route53::Zone.new(@options.zone,nil,conn)
           puts "Creating New Zone #{@options.zone}"
           resp = new_zone.create_zone(@options.comment)
@@ -117,9 +150,13 @@ module Route53
             pending_wait(resp)
             puts "Zone Created."
           end
+        else
+          required_options("new zone",["--zone"])
         end
-        
-        if @options.delete_zone
+      end
+      
+      def delete_zone
+        if @options.zone
           records = conn.get_zones(@options.zone)
           if records.size > 0
             if records.size > 1
@@ -134,14 +171,21 @@ module Route53
           else
             $stderr.puts "ERROR: Couldn't Find Record for @options.zone."
           end
+        else
+          required_options("delete zone",["--zone"])
         end
-        
-        if @options.create_record
+      end
+      
+      def create_record
+        if @options.zone && @options.name && 
+           @options.dnstype && @options.values && 
+           (@options.ttl || @config['default_ttl'])
           zones = conn.get_zones(@options.zone)
           if zones.size > 0
             resps = []
             zones.each do |z|
               puts "Creating Record"
+              @options.ttl = @config['default_ttl'] if @options.ttl.nil?
               record = Route53::DNSRecord.new(@options.name,@options.dnstype,@options.ttl,@options.values,z)
               puts "Creating Record #{record}"
               resps.push(record.create)
@@ -153,10 +197,16 @@ module Route53
           else
             $stderr.puts "ERROR: Couldn't Find Record for @options.zone."
           end
-
+        else
+          #$stderr.puts "ERROR: The following arguments are required for a create record operation."
+          #$stderr.puts "ERROR: --zone and at least one of --name, --type, --ttl or --values"
+          #exit 1
+          required_options("create record",["--zone","--name","--type","--ttl","--values"])
         end
-        
-        if @options.remove_record
+      end
+      
+      def remove_record
+        if @options.zone
           zones = conn.get_zones(@options.zone)
           if zones.size > 0
             zones.each do |z|
@@ -178,9 +228,16 @@ module Route53
           else
             $stderr.puts "ERROR: Couldn't Find Record for @options.zone."
           end
+        else
+          #$stderr.puts "ERROR: The following arguments are required for a record removal operation."
+          #$stderr.puts "ERROR: --zone"
+          #exit 1
+          required_options("record removal",["--zone"])
         end
-        
-        if @options.change_record
+      end
+      
+      def change_record
+        if @options.zone && (@options.name || @options.dnstype || @options.ttl || @options.values)
           zones = conn.get_zones(@options.zone)
           if zones.size > 0
             zones.each do |z|
@@ -202,20 +259,20 @@ module Route53
           else
             $stderr.puts "ERROR: Couldn't Find Record for @options.zone."
           end
+        else
+          #$stderr.puts "ERROR: The following arguments are required for a record change operation."
+          #$stderr.puts "ERROR: --zone and at least one of --name, --type, --ttl or --values"
+          #exit 1
+          required_options("record change",["--zone"],["--name","--type","--ttl","--values"])
         end
-        
-        if @options.list || @options.zone.nil?
-          zones = conn.get_zones(@options.zone)
-          zones.each do |z|
-            puts z
-            if @options.zone
-              records = z.get_records(@options.dnstype.nil? ? "ANY" : @options.dnstype)
-              records.each do |r|
-                puts r
-              end
-            end
-          end
-        end
+      end
+      
+      def required_options(operation,required = [],at_least_one = [],optional = [])
+        $stderr.puts "ERROR: The following arguments are required for a #{operation} operation."
+        $stderr.puts "ERROR: #{required.join(", ")} are required." if required.size > 0
+        $stderr.puts "ERROR: At least one of #{at_least_one.join(", ")} are required." if at_least_one.size > 0
+        $stderr.puts "ERROR: #{optional.join(", ")}are optional." if optional.size > 0
+        exit 1
       end
       
       def setup
@@ -226,6 +283,7 @@ module Route53
         new_config['secret_key'] = get_input(String,"Amazon Secret Key")
         new_config['api'] = get_input(String,"Amazon Route 53 API Version","2010-10-01")
         new_config['endpoint'] = get_input(String,"Amazon Route 53 Endpoint","https://route53.amazonaws.com/")
+        new_config['default_ttl'] = get_input(String,"Default TTL","3600")
         if get_input(true.class,"Save the configuration file to \"~/.route53\"?","Y")
           File.open(@options.file,'w') do |out|
             YAML.dump(new_config,out)
