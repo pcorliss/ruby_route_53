@@ -20,6 +20,8 @@ module Route53
       @options.quiet = false
     end
 
+    #Skeleton obtained from http://blog.toddwerth.com/entries/show/5 and modified
+    
     # Parse options, check arguments, then process the command
     def run
       if parsed_options? && arguments_valid? 
@@ -105,9 +107,13 @@ module Route53
       end
 
       def arguments_valid?
-        return true if @arguments.length == 0
-        $stderr.puts "Received extra arguments. that couldn't be handled:#{@arguments}"
-        return false
+        if @arguments.length <= 1
+          @options.zone = @arguments.pop if @options.zone.nil?
+          return true
+        else
+          $stderr.puts "Received extra arguments. that couldn't be handled:#{@arguments}"
+          return false
+        end
       end
       
       # Setup the arguments
@@ -122,7 +128,7 @@ module Route53
           remove_record
         elsif @options.change_record
           change_record
-        elsif @options.list || @options.zone.nil?
+        else
           list
         end
       end
