@@ -222,7 +222,7 @@ module Route53
           if zones.size > 0
             zones.each do |z|
               records = z.get_records(@options.dnstype.nil? ? "ANY" : @options.dnstype)
-              records.select! { |rec| rec.name == @options.name } if @options.name
+              records = records.select { |rec| rec.name == @options.name } if @options.name
               if records.size > 0
                 if records.size > 1
                   records = record_picker(records)
@@ -254,7 +254,7 @@ module Route53
           if zones.size > 0
             zones.each do |z|
               records = z.get_records(@options.dnstype.nil? ? "ANY" : @options.dnstype)
-              records.select! { |rec| rec.name == @options.name } if @options.name
+              records = records.select { |rec| rec.name == @options.name } if @options.name
               if records.size > 0
                 if records.size > 1
                   records = record_picker(records,false)
