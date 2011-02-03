@@ -197,6 +197,15 @@ module Route53
             zones.each do |z|
               puts "Creating Record"
               @options.ttl = @config['default_ttl'] if @options.ttl.nil?
+              if @options.dnstype == 'TXT'
+                @options.values = @options.values.map do |val|
+                  unless val.start_with?('"') && val.end_with?('"')
+                    val = '"' + val unless val.start_with? '"'
+                    val = val + '"' unless val.end_with? '"'
+                  end
+                  val
+                end
+              end
               record = Route53::DNSRecord.new(@options.name,@options.dnstype,@options.ttl,@options.values,z)
               puts "Creating Record #{record}"
               resps.push(record.create)
