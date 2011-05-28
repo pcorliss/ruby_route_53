@@ -299,7 +299,7 @@ module Route53
     attr_reader :ttl
     attr_reader :values
     
-    def initialize(name,type,ttl,values,zone)
+    def initialize(name,type,ttl,values,zone,zone_apex=nil)
       @name = name
       unless @name.end_with?(".")
         @name += "."
@@ -308,6 +308,7 @@ module Route53
       @ttl = ttl.upcase
       @values = values
       @zone = zone
+      @zone_apex = zone_apex
     end
     
     def gen_change_xml(xml,action)
@@ -316,14 +317,21 @@ module Route53
         change.ResourceRecordSet { |record|
           record.Name(@name)
           record.Type(@type)
-          record.TTL(@ttl)
-          record.ResourceRecords { |resources|
-            @values.each { |val|
-              resources.ResourceRecord { |record|
-                record.Value(val)
+          record.TTL(@ttl) unless @zone_apex
+          if @zone_apex
+            record.AliasTarget { |targets|
+              targets.HostedZoneId(@zone_apex)
+              targets.DNSName(@values.first)
+            }
+          else
+            record.ResourceRecords { |resources|
+              @values.each { |val|
+                resources.ResourceRecord { |record|
+                  record.Value(val)
+                }
               }
             }
-          }
+          end
         }
       }
     end
@@ -337,12 +345,13 @@ module Route53
     end
     
     #Need to modify to a param hash
-    def update(name,type,ttl,values,comment=nil)
+    def update(name,type,ttl,values,comment=nil, zone_apex = nil)
       prev = self.clone
       @name = name unless name.nil?
       @type = type unless type.nil?
       @ttl = ttl unless ttl.nil?
       @values = values unless values.nil?
+      @zone_apex = zone_apex unless zone_apex.nil?
       @zone.perform_actions([
           {:action => "DELETE", :record => prev},
           {:action => "CREATE", :record => self},
@@ -351,12 +360,13 @@ module Route53
     
     #Returns the raw array so the developer can update large batches manually
     #Need to modify to a param hash
-    def update_dirty(name,type,ttl,values)
+    def update_dirty(name,type,ttl,values,zone_apex = nil)
       prev = self.clone
       @name = name unless name.nil?
       @type = type unless type.nil?
       @ttl = ttl unless ttl.nil?
       @values = values unless values.nil?
+      @zone_apex = zone_apex unless zone_apex.nil?
       return [{:action => "DELETE", :record => prev},
       {:action => "CREATE", :record => self}]
     end

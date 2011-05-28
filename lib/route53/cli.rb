@@ -57,6 +57,7 @@ module Route53
         opts.on('-z', '--zone [ZONE]', String, "Specify a zone to perform an operation on. Either in 'example.com.' or '/hostedzone/XXX' format") { |zone| @options.zone = zone }
         
         opts.on('-c', '--create', "Create a new record") { @options.create_record = true }
+        
         opts.on('-r', '--remove', String, "Remove a record") { |record| @options.remove_record = true }
         opts.on('-g', '--change', String, "Change a record") { |record| @options.change_record = true }
         
@@ -64,6 +65,7 @@ module Route53
         opts.on('--type [TYPE]', String, "Specify a type for a record") { |dnstype| @options.dnstype = dnstype }
         opts.on('--ttl [TTL]', String, "Specify a TTL for a record") { |ttl| @options.ttl = ttl }
         opts.on('--values [VALUE1],[VALUE2],[VALUE3]', Array, "Specify one or multiple values for a record") { |value| @options.values = value }
+        opts.on('--zone-apex-id [ZONE_APEX_ID]', String, "Specify a zone apex if for the record") { |zone_apex| @options.zone_apex = zone_apex }
         
         opts.on('-m', '--comment [COMMENT]', String, "Provide a comment for this operation") { |comment| @options.comment = comment }
         
@@ -206,7 +208,7 @@ module Route53
                   val
                 end
               end
-              record = Route53::DNSRecord.new(@options.name,@options.dnstype,@options.ttl,@options.values,z)
+              record = Route53::DNSRecord.new(@options.name,@options.dnstype,@options.ttl,@options.values,z,@options.zone_apex)
               puts "Creating Record #{record}"
               resps.push(record.create)
             end
