@@ -64,6 +64,8 @@ module Route53
         opts.on('--name [NAME]', String, "Specify a name for a record") { |name| @options.name = name }
         opts.on('--type [TYPE]', String, "Specify a type for a record") { |dnstype| @options.dnstype = dnstype }
         opts.on('--ttl [TTL]', String, "Specify a TTL for a record") { |ttl| @options.ttl = ttl }
+        opts.on('--weight [WEIGHT]', String, "Specify a Weight for a record") { |weight| @options.weight = weight }
+        opts.on('--ident [IDENTIFIER]', String, "Specify a unique identifier for a record") { |ident| @options.ident = ident }
         opts.on('--values [VALUE1],[VALUE2],[VALUE3]', Array, "Specify one or multiple values for a record") { |value| @options.values = value }
         opts.on('--zone-apex-id [ZONE_APEX_ID]', String, "Specify a zone apex if for the record") { |zone_apex| @options.zone_apex = zone_apex }
         
@@ -208,7 +210,7 @@ module Route53
                   val
                 end
               end
-              record = Route53::DNSRecord.new(@options.name,@options.dnstype,@options.ttl,@options.values,z,@options.zone_apex)
+              record = Route53::DNSRecord.new(@options.name,@options.dnstype,@options.ttl,@options.values,z,@options.zone_apex,@options.weight,@options.ident)
               puts "Creating Record #{record}"
               resps.push(record.create)
             end

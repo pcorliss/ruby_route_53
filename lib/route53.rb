@@ -19,7 +19,7 @@ module Route53
     attr_reader :endpoint
     attr_reader :verbose
     
-    def initialize(accesskey,secret,api='2010-10-01',endpoint='https://route53.amazonaws.com/',verbose=false)
+    def initialize(accesskey,secret,api='2011-05-05',endpoint='https://route53.amazonaws.com/',verbose=false)
       @accesskey = accesskey
       @secret = secret
       @api = api
@@ -299,7 +299,7 @@ module Route53
     attr_reader :ttl
     attr_reader :values
     
-    def initialize(name,type,ttl,values,zone,zone_apex=nil)
+    def initialize(name,type,ttl,values,zone,zone_apex=nil,weight=nil,ident=nil)
       @name = name
       unless @name.end_with?(".")
         @name += "."
@@ -309,6 +309,8 @@ module Route53
       @values = values
       @zone = zone
       @zone_apex = zone_apex
+      @weight = weight
+      @ident = ident
     end
     
     def gen_change_xml(xml,action)
@@ -318,6 +320,8 @@ module Route53
           record.Name(@name)
           record.Type(@type)
           record.TTL(@ttl) unless @zone_apex
+          record.SetIdentifier(@ident) if @ident
+          record.Weight(@weight) if @weight
           if @zone_apex
             record.AliasTarget { |targets|
               targets.HostedZoneId(@zone_apex)
