@@ -165,13 +165,13 @@ module Route53
           #puts "Name:"+record.search("Name").first.innerText if @conn.verbose
           #puts "Type:"+record.search("Type").first.innerText if @conn.verbose
           #puts "TTL:"+record.search("TTL").first.innerText if @conn.verbose
-          record.search("Value").each do |val|
-            #puts "Val:"+val.innerText if @conn.verbose
-          end
+          #record.search("Value").each do |val|
+          #  #puts "Val:"+val.innerText if @conn.verbose
+          #end
           zone_apex_records = record.search("HostedZoneId")
           weight_records = record.search("Weight")
           ident_records = record.search("SetIdentifier")
-          dom_records.push(DNSRecord.new(record.search("Name").first.innerText,
+          dom_records.push(DNSRecord.new(XMLString.unescape(record.search("Name").first.innerText),
                         record.search("Type").first.innerText,
                         record.search("TTL").first.innerText,
                         record.search("Value").map { |val| val.innerText },
@@ -393,6 +393,19 @@ module Route53
       end
     end
   end
+
+  class XMLString
+    def self.unescape(string)
+      Thread.new do
+        $SAFE = 12
+        begin
+         eval('"%s"' % string)
+        rescue Exception => e
+         string
+        end
+      end.value
+    end
+  end
 end
 
     $messages = { "InvalidClientTokenId" => "You may have a missing or incorrect secret or access key. Please double check your configuration files and amazon account",
@@ -401,7 +414,7 @@ end
                   "Other" => "It looks like you've run into an unhandled error. Please send a detailed bug report with the entire input and output from the program to support@50projects.com or to https://github.com/pcorliss/ruby_route_53/issues and we'll do out best to help you.",
                   "SignatureDoesNotMatch" => "It looks like your secret key is incorrect or no longer valid. Please check your amazon account information for the proper key.",
                   "HostedZoneNotEmpty" => "You'll need to first delete the contents of this zone. You can do so using the '--remove' option as part of the command line interface.",
-                  "InvalidChangeBatch" => "You may have tried to delete a NS or SOA record. This error is safe to ignore if you're just trying to delete all records as part of a zone prior to deleting the zone. Otherwise please file a bug by sending a detailed bug report with the entire input and output from the program to support@50projects.com or to https://github.com/pcorliss/ruby_route_53/issues and we'll do out best to help you.",
+                  "InvalidChangeBatch" => "You may have tried to delete a NS or SOA record. This error is safe to ignore if you're just trying to delete all records as part of a zone prior to deleting the zone. Or you may have tried to create a record that already exists. Otherwise please file a bug by sending a detailed bug report with the entire input and output from the program to support@50projects.com or to https://github.com/pcorliss/ruby_route_53/issues and we'll do out best to help you.",
                   "ValidationError" => "Check over your input again to make sure the record to be created is valid. The error message should give you some hints on what went wrong. If you're still having problems please file a bug by sending a detailed bug report with the entire input and output from the program to support@50projects.com or to https://github.com/pcorliss/ruby_route_53/issues and we'll do out best to help you."}
                   
 
