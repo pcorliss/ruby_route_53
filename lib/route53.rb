@@ -394,8 +394,10 @@ module Route53
     end
   end
 
+  #Need a way to safely escape the strings coming back from amazon where '*' come back as '\052'
+  #Stolen from http://www.ruby-forum.com/topic/98467
   class XMLString
-    def self.unescape(string)
+    def self.eval_unescape(string)
       Thread.new do
         $SAFE = 12
         begin
@@ -404,6 +406,10 @@ module Route53
          string
         end
       end.value
+    end
+    
+    def self.unescape(string)
+      name.gsub(/\\0(\d{2})/) { $1.oct.chr }
     end
   end
 end
