@@ -168,11 +168,18 @@ module Route53
           record.search("Value").each do |val|
             #puts "Val:"+val.innerText if @conn.verbose
           end
+          zone_apex_records = record.search("HostedZoneId")
+          weight_records = record.search("Weight")
+          ident_records = record.search("SetIdentifier")
           dom_records.push(DNSRecord.new(record.search("Name").first.innerText,
                         record.search("Type").first.innerText,
                         record.search("TTL").first.innerText,
                         record.search("Value").map { |val| val.innerText },
-                        self))
+                        self,
+                        zone_apex_records.empty? ? nil : zone_apex_records.first.innerText,
+                        weight_records.empty? ? nil : weight_records.first.innerText,
+                        ident_records.empty? ? nil : ident_records.first.innerText
+                        ))
         end
         
         truncated = (zone_file.search("IsTruncated").first.innerText == "true")
@@ -298,6 +305,9 @@ module Route53
     attr_reader :type
     attr_reader :ttl
     attr_reader :values
+    attr_reader :weight
+    attr_reader :ident
+    attr_reader :zone_apex
     
     def initialize(name,type,ttl,values,zone,zone_apex=nil,weight=nil,ident=nil)
       @name = name
@@ -319,9 +329,9 @@ module Route53
         change.ResourceRecordSet { |record|
           record.Name(@name)
           record.Type(@type)
-          record.TTL(@ttl) unless @zone_apex
           record.SetIdentifier(@ident) if @ident
           record.Weight(@weight) if @weight
+          record.TTL(@ttl) unless @zone_apex
           if @zone_apex
             record.AliasTarget { |targets|
               targets.HostedZoneId(@zone_apex)
@@ -376,7 +386,11 @@ module Route53
     end
     
     def to_s
-      return "#{@name} #{@type} #{@ttl} #{@values.join(",")}"
+      if @weight
+        "#{@name} #{@type} #{@ttl} #{@ident} #{@weight} #{@values.join(",")}"
+      else
+        "#{@name} #{@type} #{@ttl} #{@values.join(",")}"
+      end
     end
   end
 end

@@ -43,7 +43,7 @@ The first time you run the gem in command line mode you'll be prompted to setup.
     Please answer the following prompts.
     Amazon Access Key: []
     Amazon Secret Key: []
-    Amazon Route 53 API Version: [2010-10-01] 
+    Amazon Route 53 API Version: [2011-05-05] 
     Amazon Route 53 Endpoint: [https://route53.amazonaws.com/] 
     Default TTL: [3600] 
     Save the configuration file to "~/.route53"?: [Y] 

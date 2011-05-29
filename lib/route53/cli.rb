@@ -35,7 +35,8 @@ module Route53
         puts "\nFinished at #{DateTime.now}" if @options.verbose
         
       else
-        #puts "Usage Message"
+        puts "ERROR: Invalid Options passed. Please run with --help"
+        exit 1
       end
         
     end
@@ -77,6 +78,8 @@ module Route53
         
         opts.on('--access [ACCESSKEY]',String,"Specify an access key on the command line.") { |access| @options.access = access }
         opts.on('--secret [SECRETKEY]',String,"Specify a secret key on the command line. WARNING: Not a good idea") { |secret| @options.secret = secret }
+        
+        opts.on('--no-upgrade',"Do not automatically upgrade the route53 api spec for this version.") { @options.no_upgrade = true }
         
         opts.parse!(@arguments) rescue return false
         
@@ -308,7 +311,7 @@ module Route53
         new_config = Hash.new
         new_config['access_key'] = get_input(String,"Amazon Access Key")
         new_config['secret_key'] = get_input(String,"Amazon Secret Key")
-        new_config['api'] = get_input(String,"Amazon Route 53 API Version","2010-10-01")
+        new_config['api'] = get_input(String,"Amazon Route 53 API Version","2011-05-05")
         new_config['endpoint'] = get_input(String,"Amazon Route 53 Endpoint","https://route53.amazonaws.com/")
         new_config['default_ttl'] = get_input(String,"Default TTL","3600")
         if get_input(true.class,"Save the configuration file to \"~/.route53\"?","Y")
@@ -409,6 +412,14 @@ module Route53
         @config = YAML.load_file(@options.file)
         unless @config
           @config = Hash.new
+        end
+        if @config['api'] != '2011-05-05' && !@options.no_upgrade
+          puts "Note: Automatically setting your configuration file to the amazon route 53 api spec this program was written for. You can avoid this by passing --no-upgrade"
+          @config['api'] = '2011-05-05'
+          File.open(@options.file,'w') do |out|
+            YAML.dump(@config,out)
+          end
+          File.chmod(0600,@options.file)
         end
       end
       
