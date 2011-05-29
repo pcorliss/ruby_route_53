@@ -84,7 +84,7 @@ module Route53
         opts.parse!(@arguments) rescue return false
         
         process_options
-        true      
+        true
       end
 
       # Performs post-parse processing on options
