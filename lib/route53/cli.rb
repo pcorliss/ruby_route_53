@@ -187,7 +187,7 @@ module Route53
               puts "Zone Deleted." unless resp.error?
             end
           else
-            $stderr.puts "ERROR: Couldn't Find Record for @options.zone."
+            $stderr.puts "ERROR: Couldn't Find Record for #{@options.zone}."
           end
         else
           required_options("delete zone",["--zone"])
@@ -222,7 +222,7 @@ module Route53
               puts "Record Created." unless resp.error?
             end
           else
-            $stderr.puts "ERROR: Couldn't Find Record for @options.zone."
+            $stderr.puts "ERROR: Couldn't Find Record for #{@options.zone}."
           end
         else
           #$stderr.puts "ERROR: The following arguments are required for a create record operation."
@@ -250,11 +250,11 @@ module Route53
                   puts "Record Deleted." unless resp.error?
                 end
               else
-                $stderr.puts "ERROR: Couldn't Find Record for @options.zone of type "+(@options.dnstype.nil? ? "ANY" : @options.dnstype)+"."
+                $stderr.puts "ERROR: Couldn't Find Record for #{@options.zone} of type "+(@options.dnstype.nil? ? "ANY" : @options.dnstype)+"."
               end
             end
           else
-            $stderr.puts "ERROR: Couldn't Find Record for @options.zone."
+            $stderr.puts "ERROR: Couldn't Find Record for #{@options.zone}."
           end
         else
           #$stderr.puts "ERROR: The following arguments are required for a record removal operation."
@@ -270,7 +270,7 @@ module Route53
           if zones.size > 0
             zones.each do |z|
               records = z.get_records(@options.dnstype.nil? ? "ANY" : @options.dnstype)
-              records = records.select { |rec| rec.name == @options.name } if @options.name
+              records = records.select { |rec|  puts "Rec: #{rec.name}"; rec.name == @options.name } if @options.name
               if records.size > 0
                 if records.size > 1
                   records = record_picker(records,false)
@@ -282,11 +282,11 @@ module Route53
                   puts "Record Modified." unless resp.error?
                 end
               else
-                $stderr.puts "ERROR: Couldn't Find Record for @options.zone of type "+(@options.dnstype.nil? ? "ANY" : @options.dnstype)+"."
+                $stderr.puts "ERROR: Couldn't Find Record for #{@options.name} of type "+(@options.dnstype.nil? ? "ANY" : @options.dnstype)+"."
               end
             end
           else
-            $stderr.puts "ERROR: Couldn't Find Record for @options.zone."
+            $stderr.puts "ERROR: Couldn't Find Record for #{@options.name}."
           end
         else
           #$stderr.puts "ERROR: The following arguments are required for a record change operation."

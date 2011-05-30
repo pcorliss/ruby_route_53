@@ -169,16 +169,18 @@ module Route53
           #  #puts "Val:"+val.innerText if @conn.verbose
           #end
           zone_apex_records = record.search("HostedZoneId")
+          values = record.search("Value").map { |val| val.innerText }
+          values << record.search("DNSName").first.innerText unless zone_apex_records.empty?
           weight_records = record.search("Weight")
           ident_records = record.search("SetIdentifier")
-          dom_records.push(DNSRecord.new(XMLString.unescape(record.search("Name").first.innerText),
+          dom_records.push(DNSRecord.new(record.search("Name").first.innerText,
                         record.search("Type").first.innerText,
-                        record.search("TTL").first.innerText,
-                        record.search("Value").map { |val| val.innerText },
+                        (record.search("TTL").first.innerText if zone_apex_records.empty?),
+                        values,
                         self,
-                        zone_apex_records.empty? ? nil : zone_apex_records.first.innerText,
-                        weight_records.empty? ? nil : weight_records.first.innerText,
-                        ident_records.empty? ? nil : ident_records.first.innerText
+                        (zone_apex_records.first.innerText unless zone_apex_records.empty?),
+                        (weight_records.first.innerText unless weight_records.empty?),
+                        (ident_records.first.innerText unless ident_records.empty?)
                         ))
         end
         
@@ -237,7 +239,7 @@ module Route53
 
       
     def initialize(resp,conn)
-      @raw_data = resp
+      @raw_data = unescape(resp)
       if error?
         $stderr.puts "ERROR: Amazon returned an error for the request."
         $stderr.puts "ERROR: RAW_XML: "+@raw_data
@@ -298,6 +300,10 @@ module Route53
     def to_s
       return @raw_data
     end
+    
+    def unescape(string)
+      string.gsub(/\\0(\d{2})/) { $1.oct.chr }
+    end
   end
   
   class DNSRecord
@@ -314,8 +320,8 @@ module Route53
       unless @name.end_with?(".")
         @name += "."
       end
-      @type = type
-      @ttl = ttl.upcase
+      @type = type.upcase
+      @ttl = ttl
       @values = values
       @zone = zone
       @zone_apex = zone_apex
@@ -388,30 +394,14 @@ module Route53
     def to_s
       if @weight
         "#{@name} #{@type} #{@ttl} #{@ident} #{@weight} #{@values.join(",")}"
+      elsif @zone_apex
+        "#{@name} #{@type} #{@zone_apex} #{@values.join(",")}"
       else
         "#{@name} #{@type} #{@ttl} #{@values.join(",")}"
       end
     end
   end
 
-  #Need a way to safely escape the strings coming back from amazon where '*' come back as '\052'
-  #Stolen from http://www.ruby-forum.com/topic/98467
-  class XMLString
-    def self.eval_unescape(string)
-      Thread.new do
-        $SAFE = 12
-        begin
-         eval('"%s"' % string)
-        rescue Exception => e
-         string
-        end
-      end.value
-    end
-    
-    def self.unescape(string)
-      name.gsub(/\\0(\d{2})/) { $1.oct.chr }
-    end
-  end
 end
 
     $messages = { "InvalidClientTokenId" => "You may have a missing or incorrect secret or access key. Please double check your configuration files and amazon account",
