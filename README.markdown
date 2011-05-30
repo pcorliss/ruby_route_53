@@ -6,7 +6,7 @@ This interface can either be used as a command line tool or as a library from wi
 Costs & Impact
 --------------
 
-At the time of this writing Amazon charges $1/zone/month. This includes zones that have been created and deleted and then recreated. The creator of this gem is not responsible for costs incurred while using this interface or unexpected oepration or bugs which may incur a cost for the user. The creator is also not responsible for any downtime incurred or disruption in service from the usage of this tool. DNS can be a tricky thing, be careful and always make sure you have a backup of your zone prior to mucking around with it. (route53 -l example.com.)
+At the time of this writing Amazon charges $1/zone/month. This includes zones that have been created and deleted and then recreated outside of the normal 12 hour grace period. The creator of this gem is not responsible for costs incurred while using this interface or unexpected oepration or bugs which may incur a cost for the user. The creator is also not responsible for any downtime incurred or disruption in service from the usage of this tool. DNS can be a tricky thing, be careful and always make sure you have a backup of your zone prior to mucking around with it. (route53 -l example.com.)
 
 Latest Version
 --------------
@@ -117,7 +117,6 @@ Once route53 is installed, started and has been setup you're ready to start. You
     #Deleting a zone - First remove all records except the NS and SOA record. Then delete the zone.
     route53 --zone example.com. -r
     route53 -d example.com.
-    
     
 
 Library Usage
