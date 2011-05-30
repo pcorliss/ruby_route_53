@@ -393,7 +393,7 @@ module Route53
     
     def to_s
       if @weight
-        "#{@name} #{@type} #{@ttl} #{@ident} #{@weight} #{@values.join(",")}"
+        "#{@name} #{@type} #{@ttl} '#{@ident}' #{@weight} #{@values.join(",")}"
       elsif @zone_apex
         "#{@name} #{@type} #{@zone_apex} #{@values.join(",")}"
       else

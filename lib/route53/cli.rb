@@ -204,7 +204,7 @@ module Route53
             zones.each do |z|
               puts "Creating Record"
               @options.ttl = @config['default_ttl'] if @options.ttl.nil?
-              if @options.dnstype == 'TXT'
+              if @options.dnstype.upcase == 'TXT'
                 @options.values = @options.values.map do |val|
                   unless val.start_with?('"') && val.end_with?('"')
                     val = '"' + val unless val.start_with? '"'

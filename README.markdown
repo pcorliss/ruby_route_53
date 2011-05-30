@@ -66,15 +66,19 @@ Command Line Options
         --name [NAME]                Specify a name for a record
         --type [TYPE]                Specify a type for a record
         --ttl [TTL]                  Specify a TTL for a record
+        --weight [WEIGHT]            Specify a Weight for a record
+        --ident [IDENTIFIER]         Specify a unique identifier for a record
         --values [VALUE1],[VALUE2],[VALUE3]
                                      Specify one or multiple values for a record
+        --zone-apex-id [ZONE_APEX_ID]
+                                     Specify a zone apex if for the record
     -m, --comment [COMMENT]          Provide a comment for this operation
         --no-wait                    Do not wait for actions to finish syncing.
     -s, --setup                      Run the setup ptogram to create your configuration file.
     -f, --file [CONFIGFILE]          Specify a configuration file to use
         --access [ACCESSKEY]         Specify an access key on the command line.
         --secret [SECRETKEY]         Specify a secret key on the command line. WARNING: Not a good idea
-
+        --no-upgrade                 Do not automatically upgrade the route53 api spec for this version.
 
 Command Line Usage
 ------------------
@@ -100,9 +104,21 @@ Once route53 is installed, started and has been setup you're ready to start. You
     #If updating values for a record, make sure to includ all other values. Otherwise they will be dropped
     route53 --zone example.com. -g --ttl 600
     
+    #Creating a record that corresponds to an Amazon ELB (zone apex support)
+    route53 --zone example.com. -c --name example. --zone-apex-id Z3DZXE0XXXXXXX --type A --values my-load-balancer-XXXXXXX.us-east-1.elb.amazonaws.com
+    
+    #Creating weighted record sets
+    route53 example.com. -c --name www.example.com. --weight 15 --ident "75 percent of traffic to pool1" --type CNAME --values pool1.example.com.
+    route53 example.com. -c --name www.example.com. --weight 5 --ident "25 percent of traffic to pool2" --type CNAME --values pool2.example.com.
+    
+    #Creating a wildcard domain
+    route53 example.com. -c --name *.example.com --type CNAME --values pool1.example.com.
+    
     #Deleting a zone - First remove all records except the NS and SOA record. Then delete the zone.
     route53 --zone example.com. -r
     route53 -d example.com.
+    
+    
 
 Library Usage
 -------------
