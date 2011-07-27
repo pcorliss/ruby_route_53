@@ -45,10 +45,10 @@ module Route53
         'X-Amzn-Authorization' => "AWS3-HTTPS AWSAccessKeyId=#{@accesskey},Algorithm=HmacSHA256,Signature=#{signature}",
         'Content-Type' => 'text/xml; charset=UTF-8'
       }
-      resp, raw_resp = http.send_request(type,uri.path+"?"+(uri.query.nil? ? "" : uri.query),data,headers)
+      resp = http.send_request(type,uri.path+"?"+(uri.query.nil? ? "" : uri.query),data,headers)
       #puts "Resp:"+resp.to_s if @verbose
-      #puts "XML_RESP:"+raw_resp if @verbose
-      return AWSResponse.new(raw_resp,self)
+      #puts "RespBody: #{resp.body}" if @verbose
+      return AWSResponse.new(resp.body,self)
     end
     
     def get_zones(name = nil)
