@@ -281,7 +281,7 @@ module Route53
                     $stderr.puts "ERROR: must provide --ttl if --zone_apex is set to empty string"
                     exit 1
                   end
-                  resp = r.update(@options.name,@options.dnstype,@options.ttl,@options.values,comment=nil,@options.zone_apex)
+                  resp = r.update(@options.name,@options.dnstype,@options.ttl,@options.values,@options.comment,@options.zone_apex)
                   pending_wait(resp)
                   puts "Record Modified." unless resp.error?
                 end
