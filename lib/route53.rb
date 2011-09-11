@@ -372,6 +372,8 @@ module Route53
       @ttl = ttl unless ttl.nil?
       @values = values unless values.nil?
       @zone_apex = zone_apex unless zone_apex.nil?
+      @zone_apex = nil unless @zone_apex
+
       @zone.perform_actions([
           {:action => "DELETE", :record => prev},
           {:action => "CREATE", :record => self},

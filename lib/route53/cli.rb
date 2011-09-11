@@ -68,7 +68,7 @@ module Route53
         opts.on('--weight [WEIGHT]', String, "Specify a Weight for a record") { |weight| @options.weight = weight }
         opts.on('--ident [IDENTIFIER]', String, "Specify a unique identifier for a record") { |ident| @options.ident = ident }
         opts.on('--values [VALUE1],[VALUE2],[VALUE3]', Array, "Specify one or multiple values for a record") { |value| @options.values = value }
-        opts.on('--zone-apex-id [ZONE_APEX_ID]', String, "Specify a zone apex if for the record") { |zone_apex| @options.zone_apex = zone_apex }
+        opts.on('--zone-apex-id [ZONE_APEX_ID]', String, "Specify a zone apex if for the record") { |zone_apex| @options.zone_apex = zone_apex || false }
         
         opts.on('-m', '--comment [COMMENT]', String, "Provide a comment for this operation") { |comment| @options.comment = comment }
         
@@ -277,7 +277,11 @@ module Route53
                 end
                 records.each do |r| 
                   puts "Modifying Record #{r.name}"
-                  resp = r.update(@options.name,@options.dnstype,@options.ttl,@options.values,comment=nil)
+                  if !@options.zone_apex.nil? && !@options.zone_apex && @options.ttl.nil?
+                    $stderr.puts "ERROR: must provide --ttl if --zone_apex is set to empty string"
+                    exit 1
+                  end
+                  resp = r.update(@options.name,@options.dnstype,@options.ttl,@options.values,comment=nil,@options.zone_apex)
                   pending_wait(resp)
                   puts "Record Modified." unless resp.error?
                 end
