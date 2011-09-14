@@ -20,6 +20,7 @@ end
 
 class IntegrationTest < Test::Unit::TestCase
   ZONE = "rubyroute53.example.com"
+  VERBOSE = ENV['VERBOSE']
   
   def setup
     $stdin = StringIO.new
@@ -33,15 +34,22 @@ class IntegrationTest < Test::Unit::TestCase
   
   def test_create_and_delete
     VCR.use_cassette(method_name) do
+      cli "-l"
+      assert_match /hostedzone/, read_stdout
+      assert_no_match /#{ZONE}/, read_stdout
+
       cli "-n #{ZONE}"
       assert_match /Creating New Zone #{ZONE}.*Zone Created/m, read_stdout
     
       cli "-z #{ZONE} -c --name a.#{ZONE}. --type A --ttl 60 --values 127.0.0.1"
       assert_match /Creating Record a.#{ZONE}. A 60 127.0.0.1.*Record Created./m, read_stdout
+      
+      cli "-z #{ZONE} -g --name a.#{ZONE}. --ttl 120"
+      assert_match /Modified/, read_stdout
     
       cli "-z #{ZONE} -r --name a.#{ZONE}."
       assert_match /Deleting Record a.#{ZONE}.*Record Deleted/m, read_stdout
-
+      
       cli "-d #{ZONE}"
       assert_match /Deleting Zone #{ZONE}/m, read_stdout
     end
@@ -51,6 +59,7 @@ class IntegrationTest < Test::Unit::TestCase
   
   def cli(arguments, input = "")
     $stdin = StringIO.new(input)
+    STDOUT.puts ">> route53 #{arguments}" if VERBOSE
     cli = Route53::CLI.new(arguments.split, $stdin)
     cli.run
   end
@@ -58,6 +67,7 @@ class IntegrationTest < Test::Unit::TestCase
   def read_stdout
     $stdout.rewind
     out = $stdout.read
+    STDOUT.puts "<< #{out}" if VERBOSE
     $stdout = StringIO.new
     out
   end
