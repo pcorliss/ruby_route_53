@@ -13,6 +13,7 @@ GEM
     hpricot (0.8.4)
     rcov (0.9.10)
     ruby-hmac (0.4.0)
+    vcr (1.11.3)
 
 PLATFORMS
   ruby
@@ -20,3 +21,4 @@ PLATFORMS
 DEPENDENCIES
   rcov
   route53!
+  vcr

@@ -4,4 +4,6 @@ gemspec
 
 group :development do
   gem "rcov"
+  gem "vcr"
+  gem "webmock"
 end

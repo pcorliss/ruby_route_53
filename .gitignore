@@ -1,3 +1,4 @@
 pkg
 route53-*.gem
 coverage
+test/fixtures
