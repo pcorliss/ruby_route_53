@@ -11,10 +11,12 @@ GEM
   specs:
     builder (3.0.0)
     hpricot (0.8.4)
+    rcov (0.9.10)
     ruby-hmac (0.4.0)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
+  rcov
   route53!
