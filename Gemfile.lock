@@ -1,0 +1,20 @@
+PATH
+  remote: .
+  specs:
+    route53 (0.2.1)
+      builder
+      hpricot
+      ruby-hmac
+
+GEM
+  remote: http://rubygems.org/
+  specs:
+    builder (3.0.0)
+    hpricot (0.8.4)
+    ruby-hmac (0.4.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  route53!
