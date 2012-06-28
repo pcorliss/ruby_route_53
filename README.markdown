@@ -18,24 +18,30 @@ Installation
 
 Installing the Gem
 
-    sudo gem install route53
+```bash
+sudo gem install route53
+```
 
 Ubuntu with precompiled dependencies
 
-    sudo apt-get update
-    sudo apt-get install ruby rubygems libopenssl-ruby libhmac-ruby libbuilder-ruby libhpricot-ruby
-    sudo gem install route53 --ignore-dependencies
-    /var/lib/gems/1.X/gems/route53-W.Y.Z/bin/route53
-    
-    #When working with the library and using this method you may need to require the library manually
-    require '/var/lib/gems/1.X/gems/route53-W.Y.Z/lib/route53'
+```bash
+sudo apt-get update
+sudo apt-get install ruby rubygems libopenssl-ruby libhmac-ruby libbuilder-ruby libhpricot-ruby
+sudo gem install route53 --ignore-dependencies
+/var/lib/gems/1.X/gems/route53-W.Y.Z/bin/route53
+
+#When working with the library and using this method you may need to require the library manually
+require '/var/lib/gems/1.X/gems/route53-W.Y.Z/lib/route53'
+```
     
 Ubuntu with building dependencies
 
-    sudo apt-get update
-    sudo apt-get install ruby rubygems ruby-dev build-essential libopenssl-ruby
-    sudo gem install route53
-    /var/lib/gems/1.X/bin/route53
+```bash
+sudo apt-get update
+sudo apt-get install ruby rubygems ruby-dev build-essential libopenssl-ruby
+sudo gem install route53
+/var/lib/gems/1.X/bin/route53
+```
     
 The first time you run the gem in command line mode you'll be prompted to setup. You'll want to have your Amazon access and secret key ready.
 
@@ -85,89 +91,91 @@ Command Line Usage
 
 Once route53 is installed, started and has been setup you're ready to start. You can use the following examples to get started.
 
-    #Creating a new zone
-    route53 -n example.com.
-    
-    #List Operations
-    route53 -l #Get all zones for this account
-    route53 -l example.com. #Get all records for this account within the zone example.com.
-    
-    #Create a new record within our newly created zone.
-    route53 --zone example.com. -c --name foo.example.com. --type CNAME --ttl 3600 --values example.com.
-    
-    #New MX Record for a Google Apps hosted domain
-    route53 --zone example.com. -c --name example.com. --type MX --ttl 3600 \
-    --values "10 ASPMX.L.GOOGLE.com.","20 ALT1.ASPMX.L.GOOGLE.com.","30 ALT2.ASPMX.L.GOOGLE.com.","40 ASPMX2.GOOGLEMAIL.com.","50 ASPMX3.GOOGLEMAIL.com."
-    
-    #Update the TTL of a record (Leave values nil to leave them alone)
-    #You'll be prompted to select the record from a list.
-    #If updating values for a record, make sure to includ all other values. Otherwise they will be dropped
-    route53 --zone example.com. -g --ttl 600
-    
-    #Creating a record that corresponds to an Amazon ELB (zone apex support)
-    route53 --zone example.com. -c --name example. --zone-apex-id Z3DZXE0XXXXXXX --type A --values my-load-balancer-XXXXXXX.us-east-1.elb.amazonaws.com
-    
-    #Creating weighted record sets
-    route53 example.com. -c --name www.example.com. --weight 15 --ident "75 percent of traffic to pool1" --type CNAME --values pool1.example.com.
-    route53 example.com. -c --name www.example.com. --weight 5 --ident "25 percent of traffic to pool2" --type CNAME --values pool2.example.com.
-    
-    #Creating a wildcard domain
-    route53 example.com. -c --name *.example.com --type CNAME --values pool1.example.com.
-    
-    #Deleting a zone - First remove all records except the NS and SOA record. Then delete the zone.
-    route53 --zone example.com. -r
-    route53 -d example.com.
-    
+```bash
+#Creating a new zone
+route53 -n example.com.
+
+#List Operations
+route53 -l #Get all zones for this account
+route53 -l example.com. #Get all records for this account within the zone example.com.
+
+#Create a new record within our newly created zone.
+route53 --zone example.com. -c --name foo.example.com. --type CNAME --ttl 3600 --values example.com.
+
+#New MX Record for a Google Apps hosted domain
+route53 --zone example.com. -c --name example.com. --type MX --ttl 3600 \
+--values "10 ASPMX.L.GOOGLE.com.","20 ALT1.ASPMX.L.GOOGLE.com.","30 ALT2.ASPMX.L.GOOGLE.com.","40 ASPMX2.GOOGLEMAIL.com.","50 ASPMX3.GOOGLEMAIL.com."
+
+#Update the TTL of a record (Leave values nil to leave them alone)
+#You'll be prompted to select the record from a list.
+#If updating values for a record, make sure to includ all other values. Otherwise they will be dropped
+route53 --zone example.com. -g --ttl 600
+
+#Creating a record that corresponds to an Amazon ELB (zone apex support)
+route53 --zone example.com. -c --name example. --zone-apex-id Z3DZXE0XXXXXXX --type A --values my-load-balancer-XXXXXXX.us-east-1.elb.amazonaws.com
+
+#Creating weighted record sets
+route53 example.com. -c --name www.example.com. --weight 15 --ident "75 percent of traffic to pool1" --type CNAME --values pool1.example.com.
+route53 example.com. -c --name www.example.com. --weight 5 --ident "25 percent of traffic to pool2" --type CNAME --values pool2.example.com.
+
+#Creating a wildcard domain
+route53 example.com. -c --name *.example.com --type CNAME --values pool1.example.com.
+
+#Deleting a zone - First remove all records except the NS and SOA record. Then delete the zone.
+route53 --zone example.com. -r
+route53 -d example.com.
+```    
 
 Library Usage
 -------------
 
 If you're using this as a library for your own ruby project you can load it and perform operations by using the following examples.
 
-    require 'route53'
+```ruby
+require 'route53'
 
-    #Creating a Connection object
-    conn = Route53::Connection.new(my_access_key,my_secret_key) #opens connection
-    
-    #Creating a new zone and working with responses
-    new_zone = Route53::Zone.new("example.com.",nil,conn) #Create a new zone "example.com."
-    resp = new_zone.create_zone #Creates a new zone
-    exit 1 if resp.error? #Exit if there was an error. The AWSResponse Class automatically prints out error messages to STDERR.
-    while resp.pending? #Waits for response to sync on Amazon's servers.
-      sleep 1 #If you'll be performing operations on this newly created zone you'll probably want to wait.
-    end
-    
-    #List Operations
-    zones = conn.get_zones #Requests list of all zones for this account
-    records = zones.first.get_records #Gets list of all records for a specific zone
-    
-    #Create a new record within our newly created zone.
-    new_record = Route53::DNSRecord.new("foo.example.com.","CNAME","3600",["example.com."],new_zone)
-    resp = new_record.create 
-    
-    #New MX Record for a Google Apps hosted domain
-    new_mx_record = Route53::DNSRecord.new("example.com.","MX","3600",
-                      ["10 ASPMX.L.GOOGLE.com.",
-                      "20 ALT1.ASPMX.L.GOOGLE.com.",
-                      "30 ALT2.ASPMX.L.GOOGLE.com.",
-                      "40 ASPMX2.GOOGLEMAIL.com.",
-                      "50 ASPMX3.GOOGLEMAIL.com."],
-                      new_zone)
-    resp = new_mx_record.create
-    
-    #Update the TTL of a record (Leave values nil to leave them alone)
-    #If updating values for a record, make sure to includ all other values. Otherwise they will be dropped
-    resp = new_record.update(nil,nil,"600",nil)
-    
-    #Deleting a zone
-    #A zone can't be deleted until all of it's records have been deleted (Except for 1 NS record and 1 SOA record)
-    new_zone.get_records.each do |record|
-      unless record.type == 'NS' || record.type == 'SOA'
-        record.delete
-      end
-    end
-    new_zone.delete_zone
-    
+#Creating a Connection object
+conn = Route53::Connection.new(my_access_key,my_secret_key) #opens connection
+
+#Creating a new zone and working with responses
+new_zone = Route53::Zone.new("example.com.",nil,conn) #Create a new zone "example.com."
+resp = new_zone.create_zone #Creates a new zone
+exit 1 if resp.error? #Exit if there was an error. The AWSResponse Class automatically prints out error messages to STDERR.
+while resp.pending? #Waits for response to sync on Amazon's servers.
+  sleep 1 #If you'll be performing operations on this newly created zone you'll probably want to wait.
+end
+
+#List Operations
+zones = conn.get_zones #Requests list of all zones for this account
+records = zones.first.get_records #Gets list of all records for a specific zone
+
+#Create a new record within our newly created zone.
+new_record = Route53::DNSRecord.new("foo.example.com.","CNAME","3600",["example.com."],new_zone)
+resp = new_record.create 
+
+#New MX Record for a Google Apps hosted domain
+new_mx_record = Route53::DNSRecord.new("example.com.","MX","3600",
+                  ["10 ASPMX.L.GOOGLE.com.",
+                  "20 ALT1.ASPMX.L.GOOGLE.com.",
+                  "30 ALT2.ASPMX.L.GOOGLE.com.",
+                  "40 ASPMX2.GOOGLEMAIL.com.",
+                  "50 ASPMX3.GOOGLEMAIL.com."],
+                  new_zone)
+resp = new_mx_record.create
+
+#Update the TTL of a record (Leave values nil to leave them alone)
+#If updating values for a record, make sure to includ all other values. Otherwise they will be dropped
+resp = new_record.update(nil,nil,"600",nil)
+
+#Deleting a zone
+#A zone can't be deleted until all of it's records have been deleted (Except for 1 NS record and 1 SOA record)
+new_zone.get_records.each do |record|
+  unless record.type == 'NS' || record.type == 'SOA'
+    record.delete
+  end
+end
+new_zone.delete_zone
+```
 
 Requirements
 ------------
