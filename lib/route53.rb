@@ -175,7 +175,7 @@ module Route53
           ident_records = record.search("SetIdentifier")
           dom_records.push(DNSRecord.new(record.search("Name").first.innerText,
                         record.search("Type").first.innerText,
-                        (record.search("TTL").first.innerText if zone_apex_records.empty?),
+                        ((record.search("TTL").first.nil? ? '' : record.search("TTL").first.innerText) if zone_apex_records.empty?),
                         values,
                         self,
                         (zone_apex_records.first.innerText unless zone_apex_records.empty?),
