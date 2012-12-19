@@ -147,6 +147,21 @@ module Route53
       return resp
     end
     
+    # gets a record by its DNS name.  Note: name should end with a ".".
+    # E.g., "foo.bar.com."
+    def get_record(name)
+      return nil if host_url.nil?
+      records, _ = get_helper("/rrset?name=#{name}&maxitems=1")
+      return nil if records.nil?
+      
+      record = records.first
+      if record.nil? || record.name != name
+        return nil
+      else
+        return record
+      end
+    end
+    
     def get_records(type="ANY")
       return nil if host_url.nil?
       
@@ -154,44 +169,17 @@ module Route53
       query = []
       dom_records = []
       while truncated
-        resp = @conn.request(@conn.base_url+@host_url+"/rrset?"+query.join("&"))
-        if resp.error?
-          return nil
-        end
-        zone_file = Hpricot::XML(resp.raw_data)
-        records = zone_file.search("ResourceRecordSet")
-
-        records.each do |record|
-          #puts "Name:"+record.search("Name").first.innerText if @conn.verbose
-          #puts "Type:"+record.search("Type").first.innerText if @conn.verbose
-          #puts "TTL:"+record.search("TTL").first.innerText if @conn.verbose
-          #record.search("Value").each do |val|
-          #  #puts "Val:"+val.innerText if @conn.verbose
-          #end
-          zone_apex_records = record.search("HostedZoneId")
-          values = record.search("Value").map { |val| val.innerText }
-          values << record.search("DNSName").first.innerText unless zone_apex_records.empty?
-          weight_records = record.search("Weight")
-          ident_records = record.search("SetIdentifier")
-          dom_records.push(DNSRecord.new(record.search("Name").first.innerText,
-                        record.search("Type").first.innerText,
-                        (record.search("TTL").first.innerText if zone_apex_records.empty?),
-                        values,
-                        self,
-                        (zone_apex_records.first.innerText unless zone_apex_records.empty?),
-                        (weight_records.first.innerText unless weight_records.empty?),
-                        (ident_records.first.innerText unless ident_records.empty?)
-                        ))
-        end
+        records, zone_file = get_helper("/rrset?"+query.join("&"))
+        return nil if records.nil?
+        dom_records += records
         
-        truncated = (zone_file.search("IsTruncated").first.innerText == "true")
+        truncated = zone_file.search("IsTruncated").first.innerText == "true"
         if truncated
           next_name = zone_file.search("NextRecordName").first.innerText
           next_type = zone_file.search("NextRecordType").first.innerText
           query = ["name="+next_name,"type="+next_type]
         end
       end
-      @records = dom_records
       if type != 'ANY'
         return dom_records.select { |r| r.type == type }
       end
@@ -230,6 +218,44 @@ module Route53
     def to_s
       return "#{@name} #{@host_url}"
     end
+    
+    private
+    
+      # `url` is absolute, e.g., `/rrset?name=foo`
+      #
+      # returns two values: the first is an array of records that were parsed
+      # from the API response.  The second is the zone file data, which contains
+      # information about whether or not the response is truncated, along with other
+      # metadata.
+      #
+      # This may return a nil record list if the request had an error.
+      def get_helper(url)
+        resp = @conn.request(@conn.base_url+@host_url+url)
+        if resp.error?
+          return nil, nil
+        end
+        zone_file = Hpricot::XML(resp.raw_data)
+        records = zone_file.search("ResourceRecordSet")
+
+        dom_records = []
+        records.each do |record|
+          zone_apex_records = record.search("HostedZoneId")
+          values = record.search("Value").map { |val| val.innerText }
+          values << record.search("DNSName").first.innerText unless zone_apex_records.empty?
+          weight_records = record.search("Weight")
+          ident_records = record.search("SetIdentifier")
+          dom_records.push(DNSRecord.new(record.search("Name").first.innerText,
+                        record.search("Type").first.innerText,
+                        (record.search("TTL").first.innerText if zone_apex_records.empty?),
+                        values,
+                        self,
+                        (zone_apex_records.first.innerText unless zone_apex_records.empty?),
+                        (weight_records.first.innerText unless weight_records.empty?),
+                        (ident_records.first.innerText unless ident_records.empty?)
+                        ))
+        end
+        return dom_records, zone_file
+      end
   end
   
   class AWSResponse

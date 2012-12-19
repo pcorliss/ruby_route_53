@@ -159,6 +159,9 @@ If you're using this as a library for your own ruby project you can load it and 
     #If updating values for a record, make sure to includ all other values. Otherwise they will be dropped
     resp = new_record.update(nil,nil,"600",nil)
     
+    #Get operation
+    record = zones.first.get_record("example.com.")
+    
     #Deleting a zone
     #A zone can't be deleted until all of it's records have been deleted (Except for 1 NS record and 1 SOA record)
     new_zone.get_records.each do |record|
