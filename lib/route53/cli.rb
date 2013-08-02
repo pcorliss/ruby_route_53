@@ -7,13 +7,13 @@ require 'yaml'
 
 module Route53
   class CLI
-    
+
     attr_reader :options
 
     def initialize(arguments, stdin)
       @arguments = arguments
       @stdin = stdin
-      
+
       # Set defaults
       @options = OpenStruct.new
       @options.verbose = false
@@ -21,47 +21,47 @@ module Route53
     end
 
     #Skeleton obtained from http://blog.toddwerth.com/entries/show/5 and modified
-    
+
     # Parse options, check arguments, then process the command
     def run
-      if parsed_options? && arguments_valid? 
+      if parsed_options? && arguments_valid?
         puts "Start at #{DateTime.now}\n\n" if @options.verbose
-        
+
         output_options if @options.verbose # [Optional]
-              
-        process_arguments            
+
+        process_arguments
         process_command
-        
+
         puts "\nFinished at #{DateTime.now}" if @options.verbose
-        
+
       else
         puts "ERROR: Invalid Options passed. Please run with --help"
         exit 1
       end
-        
+
     end
-    
+
     protected
-    
+
       def parsed_options?
-        
+
         # Specify options
-        opts = OptionParser.new 
+        opts = OptionParser.new
         opts.on('-v', '--version', "Print Version Information") { output_version ; exit 0 }
         opts.on('-h', '--help',"Show this message") { puts opts ; exit 0 }
-        opts.on('-V', '--verbose',"Verbose Output") { @options.verbose = true }  
+        opts.on('-V', '--verbose',"Verbose Output") { @options.verbose = true }
         #opts.on('-q', '--quiet',"Quiet Output") { @options.quiet = true }
-        
+
         opts.on('-l', '--list [ZONE]', String, "Receive a list of all zones or specify a zone to view") { |zone| @options.zone = zone unless zone.nil?; @options.list = true }
         opts.on('-n', '--new [ZONE]', String, "Create a new Zone") { |zone| @options.zone = zone unless zone.nil?; @options.new_zone = true }
         opts.on('-d', '--delete [ZONE]', String, "Delete a Zone") { |zone| @options.zone = zone unless zone.nil?; @options.delete_zone = true }
         opts.on('-z', '--zone [ZONE]', String, "Specify a zone to perform an operation on. Either in 'example.com.' or '/hostedzone/XXX' format") { |zone| @options.zone = zone }
-        
+
         opts.on('-c', '--create', "Create a new record") { @options.create_record = true }
-        
+
         opts.on('-r', '--remove', String, "Remove a record") { |record| @options.remove_record = true }
         opts.on('-g', '--change', String, "Change a record") { |record| @options.change_record = true }
-        
+
         opts.on('--name [NAME]', String, "Specify a name for a record") { |name| @options.name = name }
         opts.on('--type [TYPE]', String, "Specify a type for a record") { |dnstype| @options.dnstype = dnstype }
         opts.on('--ttl [TTL]', String, "Specify a TTL for a record") { |ttl| @options.ttl = ttl }
@@ -69,20 +69,21 @@ module Route53
         opts.on('--ident [IDENTIFIER]', String, "Specify a unique identifier for a record") { |ident| @options.ident = ident }
         opts.on('--values [VALUE1],[VALUE2],[VALUE3]', Array, "Specify one or multiple values for a record") { |value| @options.values = value }
         opts.on('--zone-apex-id [ZONE_APEX_ID]', String, "Specify a zone apex if for the record") { |zone_apex| @options.zone_apex = zone_apex }
-        
+
         opts.on('-m', '--comment [COMMENT]', String, "Provide a comment for this operation") { |comment| @options.comment = comment }
-        
+
         opts.on('--no-wait',"Do not wait for actions to finish syncing.") { @options.nowait = true }
         opts.on('-s', '--setup',"Run the setup ptogram to create your configuration file.") { @options.setup = true }
         opts.on('-f', '--file [CONFIGFILE]',String,"Specify a configuration file to use") { |file| @options.file = file }
-        
+
         opts.on('--access [ACCESSKEY]',String,"Specify an access key on the command line.") { |access| @options.access = access }
         opts.on('--secret [SECRETKEY]',String,"Specify a secret key on the command line. WARNING: Not a good idea") { |secret| @options.secret = secret }
-        
+
         opts.on('--no-upgrade',"Do not automatically upgrade the route53 api spec for this version.") { @options.no_upgrade = true }
-        
+        opts.on('-k', '--ssl_no_verify',"set none to ssl veryfy mode ") { @options.ssl_no_verify = true }
+
         opts.parse!(@arguments) rescue return false
-        
+
         process_options
         true
       end
@@ -98,17 +99,17 @@ module Route53
         load_config
         @config['access_key'] = @options.access unless @options.access.nil?
         @config['secret_key'] = @options.secret unless @options.secret.nil?
-        
-        
+
+
         required_options("",["--access-key"]) if @config['access_key'].nil? || @config['access_key'] == ""
         required_options("",["--secret_key"]) if @config['secret_key'].nil? || @config['secret_key'] == ""
-        
+
       end
-      
+
       def output_options
         puts "Options:\n"
-        
-        @options.marshal_dump.each do |name, val|        
+
+        @options.marshal_dump.each do |name, val|
           puts "  #{name} = #{val}"
         end
       end
@@ -122,7 +123,7 @@ module Route53
           return false
         end
       end
-      
+
       # Setup the arguments
       def process_arguments
         if @options.new_zone
@@ -131,7 +132,7 @@ module Route53
           delete_zone
         elsif @options.create_record
           create_record
-        elsif @options.remove_record 
+        elsif @options.remove_record
           remove_record
         elsif @options.change_record
           change_record
@@ -139,7 +140,7 @@ module Route53
           list
         end
       end
-      
+
       def list
         zones = conn.get_zones(@options.zone)
         unless zones.nil?
@@ -156,7 +157,7 @@ module Route53
           $stderr.puts "ERROR: No Records found for #{@options.zone}"
         end
       end
-    
+
       def new_zone
         if @options.zone
           new_zone = Route53::Zone.new(@options.zone,nil,conn)
@@ -172,7 +173,7 @@ module Route53
           required_options("new zone",["--zone"])
         end
       end
-      
+
       def delete_zone
         if @options.zone
           records = conn.get_zones(@options.zone)
@@ -180,7 +181,7 @@ module Route53
             if records.size > 1
               records = record_picker(records)
             end
-            records.each do |r| 
+            records.each do |r|
               puts "Deleting Zone #{r.name}"
               resp = r.delete_zone
               pending_wait(resp)
@@ -193,10 +194,10 @@ module Route53
           required_options("delete zone",["--zone"])
         end
       end
-      
+
       def create_record
-        if @options.zone && @options.name && 
-           @options.dnstype && @options.values && 
+        if @options.zone && @options.name &&
+           @options.dnstype && @options.values &&
            (@options.ttl || @config['default_ttl'])
           zones = conn.get_zones(@options.zone)
           if zones.size > 0
@@ -231,7 +232,7 @@ module Route53
           required_options("create record",["--zone","--name","--type","--ttl","--values"])
         end
       end
-      
+
       def remove_record
         if @options.zone
           zones = conn.get_zones(@options.zone)
@@ -243,7 +244,7 @@ module Route53
                 if records.size > 1
                   records = record_picker(records)
                 end
-                records.each do |r| 
+                records.each do |r|
                   puts "Deleting Record #{r.name}"
                   resp = r.delete
                   pending_wait(resp)
@@ -263,7 +264,7 @@ module Route53
           required_options("record removal",["--zone"])
         end
       end
-      
+
       def change_record
         if @options.zone && (@options.name || @options.dnstype || @options.ttl || @options.values)
           zones = conn.get_zones(@options.zone)
@@ -275,7 +276,7 @@ module Route53
                 if records.size > 1
                   records = record_picker(records,false)
                 end
-                records.each do |r| 
+                records.each do |r|
                   puts "Modifying Record #{r.name}"
                   resp = r.update(@options.name,@options.dnstype,@options.ttl,@options.values,comment=nil)
                   pending_wait(resp)
@@ -295,7 +296,7 @@ module Route53
           required_options("record change",["--zone"],["--name","--type","--ttl","--values"])
         end
       end
-      
+
       def required_options(operation,required = [],at_least_one = [],optional = [])
         operation == "" ? operation += " " : operation = " "+operation+" "
         $stderr.puts "ERROR: The following arguments are required for a#{operation}operation."
@@ -304,7 +305,7 @@ module Route53
         $stderr.puts "ERROR: #{optional.join(", ")}are optional." if optional.size > 0
         exit 1
       end
-      
+
       def setup
         puts "You've either elected to run the setup or a configuration file could not be found."
         puts "Please answer the following prompts."
@@ -325,9 +326,9 @@ module Route53
           puts YAML.dump(new_config)
           exit 0
         end
-        
+
       end
-      
+
       def get_input(inputtype,description,default = nil)
         print "#{description}: [#{default}] "
         STDOUT.flush
@@ -341,7 +342,7 @@ module Route53
         end
         return selection
       end
-      
+
       def record_picker(records,allowall = true)
         puts "Please select the record to perform the action on."
         records.each_with_index do |r,i|
@@ -371,40 +372,40 @@ module Route53
           exit 1
         end
       end
-      
+
       def pending_wait(resp)
         while !@options.nowait && resp.pending?
           print '.'
-          
+
           STDOUT.flush
           sleep 1
         end
       end
-      
+
       def output_version
         puts "Ruby route53 interface version #{Route53::VERSION}"
         puts "Written by Philip Corliss (pcorliss@50projects.com)"
         puts "https://github.com/pcorliss/ruby_route_53"
       end
-      
+
       def process_command
 
       end
 
       def process_standard_input
-        input = @stdin.read      
-        #@stdin.each do |line| 
-        #  
+        input = @stdin.read
+        #@stdin.each do |line|
+        #
         #end
       end
-      
+
       def conn
         if @conn.nil?
-          @conn = Route53::Connection.new(@config['access_key'],@config['secret_key'],@config['api'],@config['endpoint'],@options.verbose)
+          @conn = Route53::Connection.new(@config['access_key'],@config['secret_key'],@config['api'],@config['endpoint'],@options.verbose,@options.ssl_no_verify)
         end
         return @conn
       end
-      
+
       def load_config
         unless File.exists?(@options.file)
           setup
@@ -422,7 +423,7 @@ module Route53
           File.chmod(0600,@options.file)
         end
       end
-      
+
       def user_home
         homes = ["HOME", "HOMEPATH"]
         realHome = homes.detect {|h| ENV[h] != nil}
