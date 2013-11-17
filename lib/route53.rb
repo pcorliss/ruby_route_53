@@ -122,6 +122,13 @@ module Route53
       @conn = conn
     end
 
+    def nameservers
+      return @nameservers if @nameservers
+      response = Hpricot::XML(@conn.request(@conn.base_url + @host_url).to_s)
+      @nameservers = response.search("NameServer").map(&:innerText)
+      @nameservers
+    end
+
     def delete_zone
       @conn.request(@conn.base_url + @host_url,"DELETE")
     end
