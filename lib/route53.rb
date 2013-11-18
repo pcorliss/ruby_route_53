@@ -19,7 +19,7 @@ module Route53
     attr_reader :endpoint
     attr_reader :verbose
 
-    def initialize(accesskey,secret,api='2011-05-05',endpoint='https://route53.amazonaws.com/',verbose=false,ssl_no_verify=false)
+    def initialize(accesskey,secret,api='2012-12-12',endpoint='https://route53.amazonaws.com/',verbose=false,ssl_no_verify=false)
       @accesskey = accesskey
       @secret = secret
       @api = api
