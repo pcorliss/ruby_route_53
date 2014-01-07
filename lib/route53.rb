@@ -323,7 +323,7 @@ module Route53
     attr_reader :ident
     attr_reader :zone_apex
 
-    def initialize(name,type,ttl,values,zone,zone_apex=nil,weight=nil,ident=nil)
+    def initialize(name,type,ttl,values,zone,zone_apex=nil,weight=nil,ident=nil, evaluate_target_health=false)
       @name = name
       unless @name.end_with?(".")
         @name += "."
@@ -335,6 +335,7 @@ module Route53
       @zone_apex = zone_apex
       @weight = weight
       @ident = ident
+      @evaluate_target_health = evaluate_target_health
     end
 
     def gen_change_xml(xml,action)
@@ -350,6 +351,7 @@ module Route53
             record.AliasTarget { |targets|
               targets.HostedZoneId(@zone_apex)
               targets.DNSName(@values.first)
+              targets.EvaluateTargetHealth(@evaluate_target_health)
             }
           else
             record.ResourceRecords { |resources|
