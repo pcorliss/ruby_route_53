@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
   s.add_dependency "ruby-hmac"
   s.add_dependency "nokogiri"
   s.add_dependency "builder"
-  
+
   s.files        = `git ls-files`.split("\n")
   s.executables  = `git ls-files`.split("\n").map{|f| f =~ /^bin\/(.*)/ ? $1 : nil}.compact
   s.require_path = 'lib'
