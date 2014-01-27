@@ -22,6 +22,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency "webmock", '~> 1.15.0'
   s.add_development_dependency "pry"
   s.add_development_dependency "wirble"
+  s.add_development_dependency "rake"
 
   s.files        = `git ls-files`.split("\n")
   s.executables  = `git ls-files`.split("\n").map{|f| f =~ /^bin\/(.*)/ ? $1 : nil}.compact
