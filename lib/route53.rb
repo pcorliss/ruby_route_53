@@ -7,7 +7,7 @@ require 'time'
 require 'net/http'
 require 'net/https'
 require 'uri'
-require 'hpricot'
+require 'nokogiri'
 require 'builder'
 require 'digest/md5'
 
@@ -64,15 +64,15 @@ module Route53
           resp = request("#{@base_url}/hostedzone?"+query.join("&"))
         end
         return nil if resp.error?
-        zone_list = Hpricot::XML(resp.raw_data)
+        zone_list = Nokogiri::XML(resp.raw_data)
         elements = zone_list.search("HostedZone")
         elements.each do |e|
-          zones.push(Zone.new(e.search("Name").first.innerText,
-                              e.search("Id").first.innerText,
+          zones.push(Zone.new(e.search("Name").first.inner_text,
+                              e.search("Id").first.inner_text,
                               self))
         end
-        truncated = (zone_list.search("IsTruncated").first.innerText == "true") if truncated
-        query = ["marker="+zone_list.search("NextMarker").first.innerText] if truncated
+        truncated = (zone_list.search("IsTruncated").first.inner_text == "true") if truncated
+        query = ["marker="+zone_list.search("NextMarker").first.inner_text] if truncated
       end
       unless name.nil? || name.start_with?("/hostedzone/")
         name_arr = name.split('.')
@@ -124,8 +124,8 @@ module Route53
 
     def nameservers
       return @nameservers if @nameservers
-      response = Hpricot::XML(@conn.request(@conn.base_url + @host_url).to_s)
-      @nameservers = response.search("NameServer").map(&:innerText)
+      response = Nokogiri::XML(@conn.request(@conn.base_url + @host_url).to_s)
+      @nameservers = response.search("NameServer").map(&:inner_text)
       @nameservers
     end
 
@@ -150,8 +150,8 @@ module Route53
       }
       #puts "XML:\n#{xml_str}" if @conn.verbose
       resp = @conn.request(@conn.base_url + "/hostedzone","POST",xml_str)
-      resp_xml = Hpricot::XML(resp.raw_data)
-      @host_url = resp_xml.search("HostedZone").first.search("Id").first.innerText
+      resp_xml = Nokogiri::XML(resp.raw_data)
+      @host_url = resp_xml.search("HostedZone").first.search("Id").first.inner_text
       return resp
     end
 
@@ -166,36 +166,36 @@ module Route53
         if resp.error?
           return nil
         end
-        zone_file = Hpricot::XML(resp.raw_data)
+        zone_file = Nokogiri::XML(resp.raw_data)
         records = zone_file.search("ResourceRecordSet")
 
         records.each do |record|
-          #puts "Name:"+record.search("Name").first.innerText if @conn.verbose
-          #puts "Type:"+record.search("Type").first.innerText if @conn.verbose
-          #puts "TTL:"+record.search("TTL").first.innerText if @conn.verbose
+          #puts "Name:"+record.search("Name").first.inner_text if @conn.verbose
+          #puts "Type:"+record.search("Type").first.inner_text if @conn.verbose
+          #puts "TTL:"+record.search("TTL").first.inner_text if @conn.verbose
           #record.search("Value").each do |val|
-          #  #puts "Val:"+val.innerText if @conn.verbose
+          #  #puts "Val:"+val.inner_text if @conn.verbose
           #end
           zone_apex_records = record.search("HostedZoneId")
-          values = record.search("Value").map { |val| val.innerText }
-          values << record.search("DNSName").first.innerText unless zone_apex_records.empty?
+          values = record.search("Value").map { |val| val.inner_text }
+          values << record.search("DNSName").first.inner_text unless zone_apex_records.empty?
           weight_records = record.search("Weight")
           ident_records = record.search("SetIdentifier")
-          dom_records.push(DNSRecord.new(record.search("Name").first.innerText,
-                        record.search("Type").first.innerText,
-                        ((record.search("TTL").first.nil? ? '' : record.search("TTL").first.innerText) if zone_apex_records.empty?),
+          dom_records.push(DNSRecord.new(record.search("Name").first.inner_text,
+                        record.search("Type").first.inner_text,
+                        ((record.search("TTL").first.nil? ? '' : record.search("TTL").first.inner_text) if zone_apex_records.empty?),
                         values,
                         self,
-                        (zone_apex_records.first.innerText unless zone_apex_records.empty?),
-                        (weight_records.first.innerText unless weight_records.empty?),
-                        (ident_records.first.innerText unless ident_records.empty?)
+                        (zone_apex_records.first.inner_text unless zone_apex_records.empty?),
+                        (weight_records.first.inner_text unless weight_records.empty?),
+                        (ident_records.first.inner_text unless ident_records.empty?)
                         ))
         end
 
-        truncated = (zone_file.search("IsTruncated").first.innerText == "true")
+        truncated = (zone_file.search("IsTruncated").first.inner_text == "true")
         if truncated
-          next_name = zone_file.search("NextRecordName").first.innerText
-          next_type = zone_file.search("NextRecordType").first.innerText
+          next_name = zone_file.search("NextRecordName").first.inner_text
+          next_type = zone_file.search("NextRecordType").first.inner_text
           query = ["name="+next_name,"type="+next_type]
         end
       end
@@ -262,19 +262,19 @@ module Route53
     end
 
     def error?
-      return Hpricot::XML(@raw_data).search("ErrorResponse").size > 0
+      return Nokogiri::XML(@raw_data).search("ErrorResponse").size > 0
     end
 
     def error_message
-      xml = Hpricot::XML(@raw_data)
+      xml = Nokogiri::XML(@raw_data)
       msg_code = xml.search("Code")
       msg_text = xml.search("Message")
-      return (msg_code.size > 0 ? msg_code.first.inner_text : "") + (msg_text.size > 0 ? ': ' + msg_text.first.innerText : "")
+      return (msg_code.size > 0 ? msg_code.first.inner_text : "") + (msg_text.size > 0 ? ': ' + msg_text.first.inner_text : "")
     end
 
     def helpful_message
-      xml = Hpricot::XML(@raw_data)
-      msg_code = xml.search("Code").first.innerText
+      xml = Nokogiri::XML(@raw_data)
+      msg_code = xml.search("Code").first.inner_text
       return $messages[msg_code] if $messages[msg_code]
       return $messages["Other"]
     end
@@ -282,16 +282,16 @@ module Route53
     def complete?
       return true if error?
       if @change_url.nil?
-        change = Hpricot::XML(@raw_data).search("ChangeInfo")
+        change = Nokogiri::XML(@raw_data).search("ChangeInfo")
         if change.size > 0
-          @change_url = change.first.search("Id").first.innerText
+          @change_url = change.first.search("Id").first.inner_text
         else
           return false
         end
       end
       if @complete.nil? || @complete == false
-        status = Hpricot::XML(@conn.request(@conn.base_url+@change_url).raw_data).search("Status")
-        @complete = status.size > 0 && status.first.innerText == "INSYNC" ? true : false
+        status = Nokogiri::XML(@conn.request(@conn.base_url+@change_url).raw_data).search("Status")
+        @complete = status.size > 0 && status.first.inner_text == "INSYNC" ? true : false
         if !@complete && @created - Time.now > 60
           $stderr.puts "WARNING: Amazon Route53 Change timed out on Sync. This may not be an issue as it may just be Amazon being assy. Then again your request may not have completed.'"
           @complete = true

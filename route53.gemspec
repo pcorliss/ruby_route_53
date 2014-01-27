@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = ">= 1.3.5"
 
   s.add_dependency "ruby-hmac"
-  s.add_dependency "hpricot"
+  s.add_dependency "nokogiri"
   s.add_dependency "builder"
   
   s.files        = `git ls-files`.split("\n")
