@@ -17,6 +17,12 @@ Gem::Specification.new do |s|
   s.add_dependency "nokogiri"
   s.add_dependency "builder"
 
+  s.add_development_dependency "rspec"
+  s.add_development_dependency "vcr"
+  s.add_development_dependency "webmock", '~> 1.15.0'
+  s.add_development_dependency "pry"
+  s.add_development_dependency "wirble"
+
   s.files        = `git ls-files`.split("\n")
   s.executables  = `git ls-files`.split("\n").map{|f| f =~ /^bin\/(.*)/ ? $1 : nil}.compact
   s.require_path = 'lib'

@@ -1,0 +1,110 @@
+---
+http_interactions:
+- request:
+    method: head
+    uri: https://route53.amazonaws.com/date
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept:
+      - '*/*'
+      User-Agent:
+      - Ruby
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      X-Amzn-Requestid:
+      - 9eebd6a5-87a0-11e3-b239-49b331f5c62c
+      Content-Type:
+      - content/unknown
+      Content-Length:
+      - '2'
+      Date:
+      - Mon, 27 Jan 2014 22:16:07 GMT
+    body:
+      encoding: UTF-8
+      string: ''
+    http_version: 
+  recorded_at: Mon, 27 Jan 2014 22:16:08 GMT
+- request:
+    method: delete
+    uri: https://route53.amazonaws.com/2012-12-12/hostedzone/Z3E84CELCS8770?
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Date:
+      - Mon, 27 Jan 2014 22:16:07 GMT
+      X-Amzn-Authorization:
+      - AWS3-HTTPS AWSAccessKeyId=AKIAIK7CBPSH72TVCGBA,Algorithm=HmacSHA256,Signature=BSeUb4ZKEBrwpG/Tp/1zoge9sHX7PTdctJVU2beO/G4=
+      Content-Type:
+      - text/xml; charset=UTF-8
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - '*/*'
+      User-Agent:
+      - Ruby
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      X-Amzn-Requestid:
+      - 9f04411c-87a0-11e3-bf8c-1f13207fd337
+      Content-Type:
+      - text/xml
+      Content-Length:
+      - '259'
+      Date:
+      - Mon, 27 Jan 2014 22:16:07 GMT
+    body:
+      encoding: UTF-8
+      string: |-
+        <?xml version="1.0"?>
+        <DeleteHostedZoneResponse xmlns="https://route53.amazonaws.com/doc/2012-12-12/"><ChangeInfo><Id>/change/CCVCCM8EFB4P8</Id><Status>PENDING</Status><SubmittedAt>2014-01-27T22:16:08.408Z</SubmittedAt></ChangeInfo></DeleteHostedZoneResponse>
+    http_version: 
+  recorded_at: Mon, 27 Jan 2014 22:16:09 GMT
+- request:
+    method: get
+    uri: https://route53.amazonaws.com/2012-12-12/change/CCVCCM8EFB4P8?
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Date:
+      - Mon, 27 Jan 2014 22:16:07 GMT
+      X-Amzn-Authorization:
+      - AWS3-HTTPS AWSAccessKeyId=AKIAIK7CBPSH72TVCGBA,Algorithm=HmacSHA256,Signature=BSeUb4ZKEBrwpG/Tp/1zoge9sHX7PTdctJVU2beO/G4=
+      Content-Type:
+      - text/xml; charset=UTF-8
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - '*/*'
+      User-Agent:
+      - Ruby
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      X-Amzn-Requestid:
+      - 9f7a0d33-87a0-11e3-ad32-ed3fdad9cbb6
+      Content-Type:
+      - text/xml
+      Content-Length:
+      - '245'
+      Date:
+      - Mon, 27 Jan 2014 22:16:08 GMT
+    body:
+      encoding: UTF-8
+      string: |-
+        <?xml version="1.0"?>
+        <GetChangeResponse xmlns="https://route53.amazonaws.com/doc/2012-12-12/"><ChangeInfo><Id>/change/CCVCCM8EFB4P8</Id><Status>PENDING</Status><SubmittedAt>2014-01-27T22:16:08.408Z</SubmittedAt></ChangeInfo></GetChangeResponse>
+    http_version: 
+  recorded_at: Mon, 27 Jan 2014 22:16:09 GMT
+recorded_with: VCR 2.8.0

@@ -1,0 +1,73 @@
+---
+http_interactions:
+- request:
+    method: head
+    uri: https://route53.amazonaws.com/date
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept:
+      - '*/*'
+      User-Agent:
+      - Ruby
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      X-Amzn-Requestid:
+      - 634efeeb-87a2-11e3-bf8c-1f13207fd337
+      Content-Type:
+      - content/unknown
+      Content-Length:
+      - '2'
+      Date:
+      - Mon, 27 Jan 2014 22:28:46 GMT
+    body:
+      encoding: UTF-8
+      string: ''
+    http_version: 
+  recorded_at: Mon, 27 Jan 2014 22:28:47 GMT
+- request:
+    method: get
+    uri: https://route53.amazonaws.com/2012-12-12/hostedzone/Z3HXUG22R8JWBK/rrset?
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Date:
+      - Mon, 27 Jan 2014 22:28:46 GMT
+      X-Amzn-Authorization:
+      - AWS3-HTTPS AWSAccessKeyId=AKIAIK7CBPSH72TVCGBA,Algorithm=HmacSHA256,Signature=APVNFJA9XYDYwKsrPuBwP2jYLz/P8+tIGRRfGewPerk=
+      Content-Type:
+      - text/xml; charset=UTF-8
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - '*/*'
+      User-Agent:
+      - Ruby
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      X-Amzn-Requestid:
+      - 6364aa49-87a2-11e3-ad32-ed3fdad9cbb6
+      Content-Type:
+      - text/xml
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Accept-Encoding
+      Date:
+      - Mon, 27 Jan 2014 22:28:47 GMT
+    body:
+      encoding: UTF-8
+      string: |-
+        <?xml version="1.0"?>
+        <ListResourceRecordSetsResponse xmlns="https://route53.amazonaws.com/doc/2012-12-12/"><ResourceRecordSets><ResourceRecordSet><Name>50projects.com.</Name><Type>A</Type><AliasTarget><HostedZoneId>Z3DZXE0Q79N41H</HostedZoneId><DNSName>my-load-balancer-498104842.us-east-1.elb.amazonaws.com.</DNSName><EvaluateTargetHealth>false</EvaluateTargetHealth></AliasTarget></ResourceRecordSet><ResourceRecordSet><Name>50projects.com.</Name><Type>MX</Type><TTL>3600</TTL><ResourceRecords><ResourceRecord><Value>20 ALT1.ASPMX.L.GOOGLE.com.</Value></ResourceRecord><ResourceRecord><Value>10 ASPMX.L.GOOGLE.com.</Value></ResourceRecord><ResourceRecord><Value>30 ALT2.ASPMX.L.GOOGLE.com.</Value></ResourceRecord><ResourceRecord><Value>40 ASPMX2.GOOGLEMAIL.com.</Value></ResourceRecord><ResourceRecord><Value>50 ASPMX3.GOOGLEMAIL.com.</Value></ResourceRecord></ResourceRecords></ResourceRecordSet><ResourceRecordSet><Name>50projects.com.</Name><Type>NS</Type><TTL>172800</TTL><ResourceRecords><ResourceRecord><Value>ns-535.awsdns-02.net.</Value></ResourceRecord><ResourceRecord><Value>ns-1725.awsdns-23.co.uk.</Value></ResourceRecord><ResourceRecord><Value>ns-308.awsdns-38.com.</Value></ResourceRecord><ResourceRecord><Value>ns-1452.awsdns-53.org.</Value></ResourceRecord></ResourceRecords></ResourceRecordSet><ResourceRecordSet><Name>50projects.com.</Name><Type>SOA</Type><TTL>900</TTL><ResourceRecords><ResourceRecord><Value>ns-535.awsdns-02.net. awsdns-hostmaster.amazon.com. 1 7200 900 1209600 86400</Value></ResourceRecord></ResourceRecords></ResourceRecordSet><ResourceRecordSet><Name>50projects.com.</Name><Type>TXT</Type><TTL>3600</TTL><ResourceRecords><ResourceRecord><Value>&quot;foo&quot;</Value></ResourceRecord><ResourceRecord><Value>&quot;barr&quot;</Value></ResourceRecord><ResourceRecord><Value>&quot;fubar&quot;</Value></ResourceRecord></ResourceRecords></ResourceRecordSet><ResourceRecordSet><Name>\052.50projects.com.</Name><Type>CNAME</Type><TTL>3600</TTL><ResourceRecords><ResourceRecord><Value>www.google.com</Value></ResourceRecord></ResourceRecords></ResourceRecordSet><ResourceRecordSet><Name>arecord.50projects.com.</Name><Type>A</Type><TTL>3600</TTL><ResourceRecords><ResourceRecord><Value>8.8.8.8</Value></ResourceRecord></ResourceRecords></ResourceRecordSet><ResourceRecordSet><Name>bar.50projects.com.</Name><Type>CNAME</Type><TTL>3600</TTL><ResourceRecords><ResourceRecord><Value>www.google.com</Value></ResourceRecord></ResourceRecords></ResourceRecordSet><ResourceRecordSet><Name>bar2.50projects.com.</Name><Type>CNAME</Type><SetIdentifier>5</SetIdentifier><Weight>5</Weight><TTL>3600</TTL><ResourceRecords><ResourceRecord><Value>www.google.com</Value></ResourceRecord></ResourceRecords></ResourceRecordSet><ResourceRecordSet><Name>bar2.50projects.com.</Name><Type>CNAME</Type><SetIdentifier>Second</SetIdentifier><Weight>11</Weight><TTL>3600</TTL><ResourceRecords><ResourceRecord><Value>www.yahoo.com</Value></ResourceRecord></ResourceRecords></ResourceRecordSet><ResourceRecordSet><Name>foo.50projects.com.</Name><Type>CNAME</Type><TTL>999</TTL><ResourceRecords><ResourceRecord><Value>www.groupon.com</Value></ResourceRecord></ResourceRecords></ResourceRecordSet><ResourceRecordSet><Name>\052.foo.50projects.com.</Name><Type>CNAME</Type><TTL>3600</TTL><ResourceRecords><ResourceRecord><Value>www.google.com</Value></ResourceRecord></ResourceRecords></ResourceRecordSet><ResourceRecordSet><Name>foo2.50projects.com.</Name><Type>CNAME</Type><TTL>999</TTL><ResourceRecords><ResourceRecord><Value>www.yahoo.com</Value></ResourceRecord></ResourceRecords></ResourceRecordSet><ResourceRecordSet><Name>modify-test.50projects.com.</Name><Type>A</Type><TTL>3600</TTL><ResourceRecords><ResourceRecord><Value>10.146.15.27</Value></ResourceRecord></ResourceRecords></ResourceRecordSet><ResourceRecordSet><Name>philctest.50projects.com.</Name><Type>CNAME</Type><TTL>3600</TTL><ResourceRecords><ResourceRecord><Value>50projects.com.</Value></ResourceRecord></ResourceRecords></ResourceRecordSet><ResourceRecordSet><Name>philctest2.50projects.com.</Name><Type>CNAME</Type><TTL>3600</TTL><ResourceRecords><ResourceRecord><Value>foo.50projects.com.</Value></ResourceRecord></ResourceRecords></ResourceRecordSet><ResourceRecordSet><Name>philctest3.50projects.com.</Name><Type>CNAME</Type><TTL>3600</TTL><ResourceRecords><ResourceRecord><Value>example.com.</Value></ResourceRecord></ResourceRecords></ResourceRecordSet><ResourceRecordSet><Name>rubyhead.50projects.com.</Name><Type>CNAME</Type><TTL>3600</TTL><ResourceRecords><ResourceRecord><Value>www.google.com</Value></ResourceRecord></ResourceRecords></ResourceRecordSet><ResourceRecordSet><Name>text.50projects.com.</Name><Type>TXT</Type><TTL>3600</TTL><ResourceRecords><ResourceRecord><Value>&quot;foo&quot;</Value></ResourceRecord><ResourceRecord><Value>&quot;bar&quot;</Value></ResourceRecord><ResourceRecord><Value>&quot;***&quot;</Value></ResourceRecord></ResourceRecords></ResourceRecordSet><ResourceRecordSet><Name>text2.50projects.com.</Name><Type>TXT</Type><TTL>3600</TTL><ResourceRecords><ResourceRecord><Value>&quot;foo&quot;</Value></ResourceRecord><ResourceRecord><Value>&quot;bar&quot;</Value></ResourceRecord></ResourceRecords></ResourceRecordSet><ResourceRecordSet><Name>text3.50projects.com.</Name><Type>TXT</Type><TTL>3600</TTL><ResourceRecords><ResourceRecord><Value>&quot;bar&quot;</Value></ResourceRecord><ResourceRecord><Value>&quot;foo&quot;</Value></ResourceRecord></ResourceRecords></ResourceRecordSet><ResourceRecordSet><Name>www.50projects.com.</Name><Type>CNAME</Type><SetIdentifier>25 percent of traffic to pool2</SetIdentifier><Weight>5</Weight><TTL>3600</TTL><ResourceRecords><ResourceRecord><Value>pool2.50projects.com.</Value></ResourceRecord></ResourceRecords></ResourceRecordSet><ResourceRecordSet><Name>www.50projects.com.</Name><Type>CNAME</Type><SetIdentifier>75 percent of traffic to pool1</SetIdentifier><Weight>15</Weight><TTL>3600</TTL><ResourceRecords><ResourceRecord><Value>pool1.50projects.com.</Value></ResourceRecord></ResourceRecords></ResourceRecordSet></ResourceRecordSets><IsTruncated>false</IsTruncated><MaxItems>100</MaxItems></ListResourceRecordSetsResponse>
+    http_version: 
+  recorded_at: Mon, 27 Jan 2014 22:28:47 GMT
+recorded_with: VCR 2.8.0
