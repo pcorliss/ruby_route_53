@@ -15,5 +15,6 @@ RSpec.configure do |config|
 end
 
 def credentials(key)
-  YAML.load_file(File.join(ENV['HOME'], '.route53'))[key]
+  credentials_file = File.join(ENV['HOME'], '.route53')
+  File.exist?(credentials_file) ? YAML.load_file(credentials_file)[key] : ''
 end
