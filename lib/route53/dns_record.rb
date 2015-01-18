@@ -7,8 +7,9 @@ module Route53
     attr_reader :weight
     attr_reader :ident
     attr_reader :zone_apex
+    attr_reader :health_id
 
-    def initialize(name,type,ttl,values,zone,zone_apex=nil,weight=nil,ident=nil, evaluate_target_health=false)
+    def initialize(name,type,ttl,values,zone,zone_apex=nil,weight=nil,ident=nil, evaluate_target_health=false, health_id=nil)
       @name = name
       unless @name.end_with?(".")
         @name += "."
@@ -21,6 +22,7 @@ module Route53
       @weight = weight
       @ident = ident
       @evaluate_target_health = evaluate_target_health
+      @health_id = health_id
     end
 
     def gen_change_xml(xml,action)
@@ -32,6 +34,7 @@ module Route53
           record.SetIdentifier(@ident) if @ident
           record.Weight(@weight) if @weight
           record.TTL(@ttl) unless @zone_apex
+          record.HealthCheckId(@health_id) if @health_id
           if @zone_apex
             record.AliasTarget { |targets|
               targets.HostedZoneId(@zone_apex)
