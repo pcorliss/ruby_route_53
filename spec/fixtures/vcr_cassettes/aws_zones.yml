@@ -31,7 +31,7 @@ http_interactions:
   recorded_at: Mon, 27 Jan 2014 21:53:07 GMT
 - request:
     method: get
-    uri: https://route53.amazonaws.com/2012-12-12/hostedzone?
+    uri: https://route53.amazonaws.com/2012-12-12/hostedzone
     body:
       encoding: US-ASCII
       string: ''

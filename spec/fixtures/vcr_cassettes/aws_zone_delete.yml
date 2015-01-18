@@ -31,7 +31,7 @@ http_interactions:
   recorded_at: Mon, 27 Jan 2014 22:16:08 GMT
 - request:
     method: delete
-    uri: https://route53.amazonaws.com/2012-12-12/hostedzone/Z3E84CELCS8770?
+    uri: https://route53.amazonaws.com/2012-12-12/hostedzone/Z3E84CELCS8770
     body:
       encoding: US-ASCII
       string: ''
@@ -70,7 +70,7 @@ http_interactions:
   recorded_at: Mon, 27 Jan 2014 22:16:09 GMT
 - request:
     method: get
-    uri: https://route53.amazonaws.com/2012-12-12/change/CCVCCM8EFB4P8?
+    uri: https://route53.amazonaws.com/2012-12-12/change/CCVCCM8EFB4P8
     body:
       encoding: US-ASCII
       string: ''

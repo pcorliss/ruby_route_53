@@ -30,8 +30,8 @@ describe Route53::Zone do
       VCR.use_cassette("aws_zone_delete", :record => :none) do
         zone = Route53::Zone.new("example.com.", '/hostedzone/Z3E84CELCS8770', conn)
         resp = zone.delete_zone
-        expect(resp.pending?).to be_true
-        expect(resp.error?).to be_false
+        expect(resp.pending?).to be_truthy
+        expect(resp.error?).to be_falsey
       end
     end
   end
@@ -41,8 +41,8 @@ describe Route53::Zone do
       VCR.use_cassette("aws_zone", :record => :none) do
         new_zone = Route53::Zone.new("example.com.", nil, conn)
         resp = new_zone.create_zone
-        expect(resp.pending?).to be_true
-        expect(resp.error?).to be_false
+        expect(resp.pending?).to be_truthy
+        expect(resp.error?).to be_falsey
         expect(new_zone.host_url).to eq('/hostedzone/Z3E84CELCS8770')
       end
     end

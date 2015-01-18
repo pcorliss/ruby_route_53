@@ -31,7 +31,7 @@ http_interactions:
   recorded_at: Mon, 27 Jan 2014 22:08:39 GMT
 - request:
     method: get
-    uri: https://route53.amazonaws.com/2012-12-12/hostedzone/Z3HXUG22R8JWBK?
+    uri: https://route53.amazonaws.com/2012-12-12/hostedzone/Z3HXUG22R8JWBK
     body:
       encoding: US-ASCII
       string: ''
@@ -70,7 +70,7 @@ http_interactions:
   recorded_at: Mon, 27 Jan 2014 22:08:40 GMT
 - request:
     method: post
-    uri: https://route53.amazonaws.com/2012-12-12/hostedzone?
+    uri: https://route53.amazonaws.com/2012-12-12/hostedzone
     body:
       encoding: UTF-8
       string: |
@@ -119,7 +119,7 @@ http_interactions:
   recorded_at: Mon, 27 Jan 2014 22:12:47 GMT
 - request:
     method: get
-    uri: https://route53.amazonaws.com/2012-12-12/change/C2ZW86S7M9XIU1?
+    uri: https://route53.amazonaws.com/2012-12-12/change/C2ZW86S7M9XIU1
     body:
       encoding: US-ASCII
       string: ''
@@ -158,7 +158,7 @@ http_interactions:
   recorded_at: Mon, 27 Jan 2014 22:12:48 GMT
 - request:
     method: delete
-    uri: https://route53.amazonaws.com/2012-12-12/hostedzone/Z3E84CELCS8770?
+    uri: https://route53.amazonaws.com/2012-12-12/hostedzone/Z3E84CELCS8770
     body:
       encoding: US-ASCII
       string: ''

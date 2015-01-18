@@ -31,7 +31,7 @@ http_interactions:
   recorded_at: Mon, 27 Jan 2014 22:28:47 GMT
 - request:
     method: get
-    uri: https://route53.amazonaws.com/2012-12-12/hostedzone/Z3HXUG22R8JWBK/rrset?
+    uri: https://route53.amazonaws.com/2012-12-12/hostedzone/Z3HXUG22R8JWBK/rrset
     body:
       encoding: US-ASCII
       string: ''
