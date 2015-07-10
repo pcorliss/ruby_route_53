@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = ">= 1.3.5"
 
   s.add_dependency "ruby-hmac"
-  s.add_dependency "nokogiri", '~> 1.5.10'
+  s.add_dependency "nokogiri"
   s.add_dependency "builder"
 
   s.add_development_dependency "rspec", "~> 3.0"
