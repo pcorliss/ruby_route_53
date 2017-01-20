@@ -18,6 +18,20 @@ describe Route53::Connection do
       end
     end
 
+    it "handles a single domain name" do
+      VCR.use_cassette("aws_zones", :record => :none) do
+        conn = Route53::Connection.new(credentials('access_key'), credentials('secret_key'))
+        expect(conn.get_zones('50projects.com.').map(&:name)).to eq(['50projects.com.'])
+      end
+    end
+
+    it "handles subdomains" do
+      VCR.use_cassette("aws_zones", :record => :none) do
+        conn = Route53::Connection.new(credentials('access_key'), credentials('secret_key'))
+        expect(conn.get_zones('sub.50projects.com.').map(&:name)).to eq(['50projects.com.'])
+      end
+    end
+
     it "handles truncated responses"
     it "handles subqueries based on the hostedzone"
   end
