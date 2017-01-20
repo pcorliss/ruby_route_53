@@ -185,7 +185,7 @@ Written with Ruby 1.9.2 on an Ubuntu Linux machine. Smoke tested on an Ubuntu Li
 Amazon AWS account with Route 53 opted into - See the signup link at [http://aws.amazon.com/route53/](http://aws.amazon.com/route53/)
 ruby openssl support
 ruby-hmac
-hpricot
+nokogiri
 builder
 
 Support and Bugs
