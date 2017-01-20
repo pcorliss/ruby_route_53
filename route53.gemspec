@@ -20,6 +20,8 @@ Gem::Specification.new do |s|
   s.add_development_dependency "rspec", "~> 3.0"
   s.add_development_dependency "vcr"
   s.add_development_dependency "webmock", '~> 1.15.0'
+  # addressable 2.5 requires public_suffix 2.0.4 which doesn't support older versions of ruby
+  s.add_development_dependency "addressable", '~> 2.3.0'
   s.add_development_dependency "pry"
   s.add_development_dependency "wirble"
   s.add_development_dependency "rake"
